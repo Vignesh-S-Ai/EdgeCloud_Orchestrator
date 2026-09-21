@@ -31,6 +31,8 @@ yolov8n.pt
 *.tfstate
 *.tfstate.*
 *.tfvars
+*.tfplan
+*tfplan*
 tfplan
 
 # Evidence & local screenshots (internal PPT evidence, not for public repo)
@@ -58,6 +60,9 @@ f89b073e-f81d-4eea-aa8c-55c3ed31cf77.pdf
 *~
 .DS_Store
 Thumbs.db
+
+# Agent / local docs
+AGENTS.md
 
 # Logs & temp
 *.log
