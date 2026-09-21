@@ -1,0 +1,22 @@
+---
+# Phase 9 9F — ADDITIVE video Rule (video-route).
+# Single change: NEW Rule only. Reuses existing RuleEndpoints (rest-source, servicebus-target service_port=8000).
+# Needed because detect-route's /detect path regex partial-swallows /detect/video (see KUBEEDGE_SERVICEBUS_DEPLOYMENT.md),
+# so the batch-video endpoint must have its own servicebus route. Node-scoped via rest tenant URL.
+# Does NOT modify detect-route / health-route / metrics-route.
+# No new direct pod-IP / ClusterIP / public :8000 path is introduced (edge SG remains default-deny).
+# Rollback: kubectl delete rule video-route -n edgecloud
+apiVersion: rules.kubeedge.io/v1
+kind: Rule
+metadata:
+  name: video-route
+  namespace: edgecloud
+  labels:
+    description: rest-to-servicebus-video
+spec:
+  source: rest-source
+  sourceResource:
+    path: /detect/video
+  target: servicebus-target
+  targetResource:
+    path: /detect/video

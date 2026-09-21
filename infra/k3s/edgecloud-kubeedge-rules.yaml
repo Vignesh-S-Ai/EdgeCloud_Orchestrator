@@ -1,0 +1,69 @@
+---
+# KubeEdge Rules — ServiceBus routing for edge application endpoints
+#
+# Each Rule maps a REST path (via rest-source RuleEndpoint) to a
+# ServiceBus path (via servicebus-target RuleEndpoint).
+#
+# CloudCore REST path: http://<cloud_ip>:9443/edge-ec2-node/edgecloud/<path>
+# EdgeCore proxies to: localhost:8000/<path>
+#
+# Rollback: kubectl delete -f edgecloud-kubeedge-rules.yaml -n edgecloud
+apiVersion: rules.kubeedge.io/v1
+kind: Rule
+metadata:
+  name: detect-route
+  namespace: edgecloud
+  labels:
+    description: rest-to-servicebus-detect
+spec:
+  source: rest-source
+  sourceResource:
+    path: /detect
+  target: servicebus-target
+  targetResource:
+    path: /detect
+---
+apiVersion: rules.kubeedge.io/v1
+kind: Rule
+metadata:
+  name: health-route
+  namespace: edgecloud
+  labels:
+    description: rest-to-servicebus-health
+spec:
+  source: rest-source
+  sourceResource:
+    path: /health
+  target: servicebus-target
+  targetResource:
+    path: /health
+---
+apiVersion: rules.kubeedge.io/v1
+kind: Rule
+metadata:
+  name: metrics-route
+  namespace: edgecloud
+  labels:
+    description: rest-to-servicebus-metrics
+spec:
+  source: rest-source
+  sourceResource:
+    path: /metrics
+  target: servicebus-target
+  targetResource:
+    path: /metrics
+---
+apiVersion: rules.kubeedge.io/v1
+kind: Rule
+metadata:
+  name: video-route
+  namespace: edgecloud
+  labels:
+    description: rest-to-servicebus-video
+spec:
+  source: rest-source
+  sourceResource:
+    path: /detect/video
+  target: servicebus-target
+  targetResource:
+    path: /detect/video

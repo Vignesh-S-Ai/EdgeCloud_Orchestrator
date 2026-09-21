@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: p5-nginx-test
+  namespace: edgecloud
+  labels:
+    app: p5-nginx-test
+    phase: p5
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: p5-nginx-test
+  template:
+    metadata:
+      labels:
+        app: p5-nginx-test
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: edge-ec2-node
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+              hostPort: 8000
+      restartPolicy: Always

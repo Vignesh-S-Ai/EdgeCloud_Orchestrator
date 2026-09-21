@@ -1,0 +1,34 @@
+---
+# KubeEdge RuleEndpoints — required for ServiceBus routing
+# These define the source (REST) and target (ServiceBus) endpoints
+# that Rules reference for cloud-to-edge communication.
+#
+# Source: rest-source
+#   tenantURL: /edge-ec2-node/edgecloud
+#   This is the URL prefix CloudCore REST uses to route to this namespace.
+#   Pattern: http://<cloud_ip>:9443/<tenantURL>/<path>
+#
+# Target: servicebus-target
+#   service_port: 8000
+#   This is the port EdgeCore's ServiceBus proxies to on the edge node.
+#
+# Rollback: kubectl delete -f edgecloud-kubeedge-ruleendpoints.yaml -n edgecloud
+apiVersion: rules.kubeedge.io/v1
+kind: RuleEndpoint
+metadata:
+  name: rest-source
+  namespace: edgecloud
+spec:
+  type: rest
+  rest:
+    tenantURL: /edge-ec2-node/edgecloud
+---
+apiVersion: rules.kubeedge.io/v1
+kind: RuleEndpoint
+metadata:
+  name: servicebus-target
+  namespace: edgecloud
+spec:
+  type: servicebus
+  servicebus:
+    service_port: 8000

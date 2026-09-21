@@ -1,0 +1,21 @@
+---
+# Phase 9 9B — ADDITIVE live-metrics Rule (metrics-route).
+# Single change: NEW Rule only. Reuses existing RuleEndpoints (rest-source, servicebus-target service_port=8000).
+# Does NOT modify detect-route / health-route. Node-scoped via rest tenant URL (/edge-ec2-node/edgecloud/metrics).
+# Exposes 127.0.0.1:8000/metrics on the EDGE NODE through the existing ServiceBus tunnel —
+# NO direct pod-IP / ClusterIP / public :8000 path is introduced (edge SG remains default-deny).
+# Rollback: kubectl delete rule metrics-route -n edgecloud
+apiVersion: rules.kubeedge.io/v1
+kind: Rule
+metadata:
+  name: metrics-route
+  namespace: edgecloud
+  labels:
+    description: rest-to-servicebus-metrics
+spec:
+  source: rest-source
+  sourceResource:
+    path: /metrics
+  target: servicebus-target
+  targetResource:
+    path: /metrics
