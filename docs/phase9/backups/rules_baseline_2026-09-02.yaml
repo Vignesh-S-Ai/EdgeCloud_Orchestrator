@@ -1,0 +1,67 @@
+---
+# Phase 9 9B — baseline backup of KubeEdge Rules / RuleEndpoints (2026-09-02T02:38Z)
+# Cluster: CloudCore i-07ecfbdd7781c5ef5, namespace edgecloud
+# Captured read-only before adding metrics-route.
+# Restore: kubectl apply -f <this file> (creates/updates the two Rules + two RuleEndpoints).
+apiVersion: v1
+items:
+  - apiVersion: rules.kubeedge.io/v1
+    kind: Rule
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"rules.kubeedge.io/v1","kind":"Rule","metadata":{"annotations":{},"labels":{"description":"rest-to-servicebus-detect"},"name":"detect-route","namespace":"edgecloud"},"spec":{"source":"rest-source","sourceResource":{"path":"/detect"},"target":"servicebus-target","targetResource":{"path":"/detect"}}}'
+      labels:
+        description: rest-to-servicebus-detect
+      name: detect-route
+      namespace: edgecloud
+    spec:
+      source: rest-source
+      sourceResource:
+        path: /detect
+      target: servicebus-target
+      targetResource:
+        path: /detect
+  - apiVersion: rules.kubeedge.io/v1
+    kind: Rule
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"rules.kubeedge.io/v1","kind":"Rule","metadata":{"annotations":{},"labels":{"description":"rest-to-servicebus-health"},"name":"health-route","namespace":"edgecloud"},"spec":{"source":"rest-source","sourceResource":{"path":"/health"},"target":"servicebus-target","targetResource":{"path":"/health"}}}'
+      labels:
+        description: rest-to-servicebus-health
+      name: health-route
+      namespace: edgecloud
+    spec:
+      source: rest-source
+      sourceResource:
+        path: /health
+      target: servicebus-target
+      targetResource:
+        path: /health
+  - apiVersion: rules.kubeedge.io/v1
+    kind: RuleEndpoint
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"rules.kubeedge.io/v1","kind":"RuleEndpoint","metadata":{"annotations":{},"labels":{"description":"cloud-rest-listener"},"name":"rest-source","namespace":"edgecloud"},"spec":{"properties":{},"ruleEndpointType":"rest"}}'
+      labels:
+        description: cloud-rest-listener
+      name: rest-source
+      namespace: edgecloud
+    spec:
+      properties: {}
+      ruleEndpointType: rest
+  - apiVersion: rules.kubeedge.io/v1
+    kind: RuleEndpoint
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"rules.kubeedge.io/v1","kind":"RuleEndpoint","metadata":{"annotations":{},"labels":{"description":"edge-servicebus-target"},"name":"servicebus-target","namespace":"edgecloud"},"spec":{"properties":{"service_port":"8000"},"ruleEndpointType":"servicebus"}}'
+      labels:
+        description: edge-servicebus-target
+      name: servicebus-target
+      namespace: edgecloud
+    spec:
+      properties:
+        service_port: "8000"
+      ruleEndpointType: servicebus
+kind: List
+metadata:
+  resourceVersion: ""
