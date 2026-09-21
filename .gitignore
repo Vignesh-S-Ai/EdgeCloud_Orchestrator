@@ -1,0 +1,82 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+*.egg-info/
+
+# Models & large binaries
+yolov8n.pt
+*.pt
+*.pth
+*.onnx
+*.tar.gz
+*.tar
+*.zip
+
+# Terraform local/state - keep source .tf and lock file, ignore state
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+tfplan
+
+# Evidence & local screenshots (internal PPT evidence, not for public repo)
+docs/review2_evidence/
+docs/review2_screenshots/
+docs/screenshots/
+docs/diary/
+docs/weekly_reports/
+docs/results/
+docs/references/
+docs/presentation/
+docs/phase9/backups/*.tar.gz
+
+# Duplicate / machine-specific
+rebuild aws/
+rebuild/
+SEM END EXAM RESULT.pdf
+f89b073e-f81d-4eea-aa8c-55c3ed31cf77.pdf
+*.drawio.bak
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+_opencode/
+.mimo/
+
+# Node (if dashboard added later)
+node_modules/
+dist/
+build/
+coverage/
+
+# Keep legitimate Terraform source
+!infra/terraform/*.tf
+!infra/terraform/*.sh
+!infra/terraform/*.yml
+!infra/terraform/*.yaml

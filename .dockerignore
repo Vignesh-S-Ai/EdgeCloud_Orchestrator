@@ -1,0 +1,20 @@
+# Docker build context exclusions (context root = repository root)
+# --------------------------------------------------------------------------
+.git
+.vscode
+.idea
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+node_modules/
+docs/
+datasets/
+models/
+diagrams/
+frontend/
+backend/
+monitoring/
+logs/
+*.drawio
