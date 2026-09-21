@@ -46,7 +46,6 @@ docs/phase9/backups/*.tar.gz
 
 # Duplicate / machine-specific
 rebuild aws/
-rebuild/
 SEM END EXAM RESULT.pdf
 f89b073e-f81d-4eea-aa8c-55c3ed31cf77.pdf
 *.drawio.bak
