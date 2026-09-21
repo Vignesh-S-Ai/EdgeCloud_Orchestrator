@@ -1,0 +1,80 @@
+Phase 1
+Planning
+
+✔ Repository
+✔ Documentation
+
+-------------------
+
+Phase 2
+
+Environment
+
+⬜ Docker
+⬜ AWS
+⬜ Ubuntu
+⬜ Kubernetes
+
+-------------------
+
+Phase 3
+
+Edge Node
+
+⬜ Camera
+⬜ OpenCV
+⬜ YOLO
+
+-------------------
+
+Phase 4
+
+Cloud
+
+⬜ FastAPI
+⬜ PostgreSQL
+
+-------------------
+
+Phase 5
+
+Scheduler
+
+⬜ CPU Monitoring
+⬜ RAM Monitoring
+⬜ Latency Monitoring
+
+-------------------
+
+Phase 6
+
+Monitoring
+
+⬜ Prometheus
+⬜ Grafana
+
+-------------------
+
+Phase 7
+
+Dashboard
+
+⬜ React
+
+-------------------
+
+Phase 8
+
+Integration
+
+⬜ Edge ↔ Cloud
+
+-------------------
+
+Phase 9
+
+Testing
+
+⬜ Failover
+⬜ Latency
+⬜ Benchmark

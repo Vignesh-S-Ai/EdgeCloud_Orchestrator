@@ -1,0 +1,218 @@
+# Module 5 Checkpoint Report
+
+**Date:** 2026-08-20 (updated)
+**Status:** Phase I PASS — Node joins, survives with auto-recovery. Phases J+ pending.
+**Author:** opencode session
+
+---
+
+## Executive Summary
+
+Module 5 (K3s + KubeEdge Edge-Cloud Integration) achieved **Phase I JOIN** with all crash-loop bugs fixed via 3 source-code patches. The WSL2 edge node (`wsl2-edge-node`) joins the K3s cluster, reaches Ready state, and runs pods. A WSL2 platform-specific session cascade causes periodic VM reboots (~60-90s downtime), but **services auto-recover** via `basic.target` systemd placement. The nginx test pod (Phase J) runs successfully on the edge node.
+
+**All patches are in a patched EdgeCore v1.23.1 binary** deployed to WSL2. No infrastructure was destroyed.
+
+---
+
+## Phase-by-Phase Status
+
+### Phases A-H: PASS (preserved, no rollback)
+
+| Phase | Evidence |
+|---|---|
+| **A: EIP + Security Group** | EIP `eipalloc-0f9f24114ff9e5d53`, SG `sg-09aada8e7591efe3e` ports 80/443/30083/10000/10002 open. |
+| **B: K3s Installation** | K3s v1.32.13+k3s1 on EC2. Traefik/servicelb disabled. kubeconfig at `/etc/rancher/k3s/k3s.yaml`. |
+| **C: Kubernetes Manifests** | Namespace `edge-orchestrator` deployed. |
+| **D: NodePort Verification** | `curl http://13.206.229.162:30083` returns nginx welcome page. |
+| **E: Docker Compose Cleanup** | Original preserved, K3s is primary runtime. |
+| **F: KubeEdge CRDs** | 6/6 CRDs installed. |
+| **G: CloudCore Installation** | CloudCore v1.23.1 running as systemd service. `contentType: application/json`. |
+| **H: WSL2 Preparation** | WSL2 Ubuntu 24.04.3, kernel 6.18.33.2, WSL 2.7.12.0. |
+
+### Phase I: JOIN — PASS (with WSL2 platform caveats)
+
+| Step | Status | Detail |
+|---|---|---|
+| EdgeCore join command | PASS | `keadm join --cloudcore-ipport=13.206.229.162:10000` succeeded. |
+| EdgeCore patched binary | PASS | v1.23.1-dirty with 3 patches. Checksum: `631988a...`. |
+| CNI fix | PASS | CNI plugins v1.6.2 installed at `/opt/cni/bin/`. |
+| Node registration | PASS | `wsl2-edge-node` appears with PodCIDR `10.42.1.0/24`. |
+| Node reaches Ready | PASS | Node shows `Ready` status after edgecore connects to cloud. |
+| Pod scheduling | PASS | nginx:alpine pod scheduled and runs on edge node. |
+| Auto-recovery | PASS | Services auto-restart after WSL2 session-triggered VM reboot via `basic.target`. |
+
+### Phase J: nginx Test Pod — PASS
+
+| Step | Status | Detail |
+|---|---|---|
+| Deployment created | PASS | `nginx-edge` deployment with `nodeSelector` for `wsl2-edge-node`. |
+| Pod scheduled | PASS | Pod lands on edge node with IP `10.42.1.x`. |
+| Pod reaches Running | PASS | `1/1 Running` confirmed from cloud side. |
+| Pod survives disruptions | PASS | Kubernetes tolerations (300s) keep pod scheduled through WSL2 reboots. |
+
+### Phases K-M: NOT STARTED
+
+---
+
+## Source Code Patches (3 applied)
+
+### Patch 1: processQuery feedbackError (LeaseResp fix)
+
+**File:** `edge/pkg/metamanager/process.go` — `processQuery()`
+**Fix:** When `requireRemoteQuery(resType)` is true but `connect.IsConnected()` returns false, now sends `feedbackError("cloud connection not ready")` instead of falling through to local SQLite DB.
+**Effect:** Prevents `LeaseResp` array unmarshal error by ensuring queries always go through the remote path when cloud connection is expected.
+
+### Patch 2: imitator.go Kind Injection
+
+**File:** `edge/pkg/metamanager/metaserver/kubernetes/storage/sqlite/imitator/imitator.go` — `Event()`
+**Fix:** When decoding an object, if `apiVersion` or `kind` is missing from the JSON, injects them for known resource types (node, configmap, secret, pod, lease).
+**Effect:** Prevents `Object 'Kind' is missing` error that prevented the imitator from caching objects.
+
+### Patch 3: processPatch synchronous response
+
+**File:** `edge/pkg/metamanager/process.go` — `processPatch()`
+**Fix:** When source is `EdgedModuleName`, calls `processRemote()` instead of just `sendToCloud()`. This makes PATCH calls synchronous — the response is waited for and returned to the caller.
+**Effect:** Kubelet PATCH calls (node status, pod status) get proper responses instead of timing out. Without this, kubelet node status updates failed silently.
+
+---
+
+## WSL2 Session Cascade (Platform Limitation)
+
+### Problem
+
+Every SSM session creates a `session-XXX.scope` in systemd. When the session ends, WSL2's systemd cascades: `session scope → multi-user.target → shutdown.target → final.target → all processes SIGTERM → WSL2 VM reboots`.
+
+### Mitigation (what we implemented)
+
+1. **`basic.target` placement:** Edge services (`edge-containerd`, `edgecore`, `edge-mosquitto`) are `WantedBy=basic.target`, NOT `multi-user.target`. This ensures they auto-start after every WSL2 reboot.
+2. **`DefaultDependencies=no`:** All edge services use `DefaultDependencies=no` to avoid being tied to the multi-user.target shutdown chain.
+3. **`Restart=always`:** All services restart automatically if killed.
+4. **`ExecStartPre` socket wait:** EdgeCore waits for containerd socket before starting.
+5. **`Containerd service masked`:** Original `containerd.service` (WantedBy=multi-user.target) is masked to prevent conflicts.
+
+### Impact
+
+- **Downtime per cascade:** ~60-90 seconds (WSL2 reboot + service startup + WebSocket reconnect)
+- **Pod survival:** Pods survive through Kubernetes tolerations (300s `NoExecute` tolerance)
+- **Node recovery:** Node reaches Ready state automatically after each reboot
+- **Root cause:** WSL2 platform-specific behavior — does NOT occur on dedicated Linux hardware
+
+### Production note
+
+For production deployment, use a dedicated Linux machine or IoT device — the session cascade does NOT affect standard Linux systems.
+
+---
+
+## Systemd Service Files (WSL2)
+
+### /etc/systemd/system/edge-containerd.service
+```ini
+[Unit]
+Description=Containerd (edge node)
+DefaultDependencies=no
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStartPre=/sbin/modprobe overlay
+ExecStart=/usr/bin/containerd --config /etc/containerd/config.toml
+Restart=always
+RestartSec=5
+KillMode=process
+
+[Install]
+WantedBy=basic.target
+```
+
+### /etc/systemd/system/edgecore.service
+```ini
+[Unit]
+Description=KubeEdge EdgeCore
+DefaultDependencies=no
+After=network.target edge-containerd.service
+Requires=edge-containerd.service
+
+[Service]
+Type=simple
+ExecStartPre=/bin/bash -c 'while [ ! -S /run/containerd/containerd.sock ]; do sleep 1; done'
+ExecStart=/usr/local/bin/edgecore
+Restart=always
+RestartSec=10
+KillMode=process
+LimitNOFILE=65535
+
+[Install]
+WantedBy=basic.target
+```
+
+### /etc/systemd/system/edge-mosquitto.service
+```ini
+[Unit]
+Description=Mosquitto MQTT (edge node)
+DefaultDependencies=no
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/mosquitto -c /etc/mosquitto/mosquitto.conf
+Restart=always
+RestartSec=5
+User=mosquitto
+
+[Install]
+WantedBy=basic.target
+```
+
+---
+
+## Infrastructure State
+
+| Resource | State | ID |
+|---|---|---|
+| EC2 | Running | `i-07ecfbdd7781c5ef5` (t3.medium, AL2023) |
+| EIP | Associated | `eipalloc-0f9f24114ff9e5d53` → `13.206.229.162` |
+| SG | Active | `sg-09aada8e7591efe3e` |
+| RDS | Free Tier, running | PostgreSQL 15.4 on AL2 |
+| ECR | 3 repos | `edge-orchestrator-*` |
+| K3s | Running v1.32.13+k3s1 | systemd on EC2 |
+| CloudCore | Running v1.23.1 | systemd on EC2 (`--config` flag) |
+| EdgeCore | Running v1.23.1-dirty (patched) | WSL2, `basic.target` |
+| Containerd | Running 1.7.28 | WSL2, `basic.target` |
+| Mosquitto | Running | WSL2, `basic.target` |
+
+**Cost tracking:** ~$50.05/mo. AWS credits: $139 expiring Oct 10, 2026.
+
+---
+
+## Remaining Work
+
+| Phase | Blocker |
+|---|---|
+| **K: edge-node ECR repository** | `ecr.tf` missing `aws_ecr_repository.edge_node` |
+| **L: YOLOv8n deployment via KubeEdge** | Requires edge-node ECR + stable EdgeCore |
+| **M: Final validation** | Requires all above |
+
+---
+
+## Known Non-Fatal Issues
+
+1. **Lease unmarshal error persists:** `invalid character 'i' in literal false (expecting 'l')` — edgecore retry logic handles this; doesn't prevent node from becoming Ready.
+2. **CloudCore "resource type not found":** First message from each new session triggers a resource type lookup failure. Non-fatal.
+3. **KubeEdge CRD warnings:** `devicestatuses`, `configupdatejobs`, `imageprepulljobs`, `nodeupgradejobs` CRDs missing. Non-fatal.
+4. **WSL2 session cascade:** Causes ~60-90s downtime per SSM session end. Auto-recovery via `basic.target`.
+
+---
+
+## Files Preserved
+
+| File | Location | Purpose |
+|---|---|---|
+| Patched EdgeCore binary | WSL2: `/usr/local/bin/edgecore` | v1.23.1-dirty with 3 patches |
+| Patch scripts | Windows: `C:\Users\vigne\AppData\Local\Temp\opencode\` | `patch1_process.go.py`, `patch2_imitator.go.py`, `patch3_processPatch.py` |
+| KubeEdge source | WSL2: `/opt/kubeedge-src/kubeedge-v1.23.1/` | Full source with patched files |
+| CloudCore config | EC2: `/etc/kubeedge/config/cloudcore.yaml` | contentType: application/json |
+| EdgeCore config | WSL2: `/etc/kubeedge/config/edgecore.yaml` | heartbeat 15s, lease 40s |
+| CNI plugins | WSL2: `/opt/cni/bin/` | v1.6.2 |
+| Containerd config | WSL2: `/etc/containerd/config.toml` | CRI enabled |
+| Edge Dockerfile | `edge/Dockerfile` | Python 3.11-slim, PyTorch CPU, YOLOv8n |

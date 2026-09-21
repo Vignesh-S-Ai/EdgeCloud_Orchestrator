@@ -1,0 +1,48 @@
+Module 1
+Edge Node
+
+Responsibilities
+
+- Capture video
+- Run YOLO
+- Run Docker
+- Send metrics
+
+-------------------
+
+Module 2
+
+Cloud
+
+Responsibilities
+
+- Heavy Processing
+- Database
+- API
+- Monitoring
+
+-------------------
+
+Module 3
+
+Decision Engine
+
+Responsibilities
+
+- CPU Monitoring
+- RAM Monitoring
+- Latency Monitoring
+- Scheduling
+
+-------------------
+
+Module 4
+
+Dashboard
+
+Responsibilities
+
+- Display Latency
+- CPU
+- Scheduler Decision
+- Logs
