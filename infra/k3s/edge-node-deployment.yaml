@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-node
+  namespace: edgecloud
+  labels:
+    app: edge-node
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: edge-node
+  template:
+    metadata:
+      labels:
+        app: edge-node
+    spec:
+      imagePullSecrets:
+        - name: ecr-registry-secret
+      nodeSelector:
+        kubernetes.io/hostname: wsl2-edge-node
+      containers:
+        - name: edge-node
+          image: 325580898273.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/edge-node:latest
+          ports:
+            - containerPort: 8000
+              hostPort: 8000
+          env:
+            - name: EDGE_HOST
+              value: "0.0.0.0"
+            - name: EDGE_PORT
+              value: "8000"
+            - name: EDGE_LOG_LEVEL
+              value: "INFO"
+            - name: EDGE_MODEL_DEVICE
+              value: "cpu"
+            - name: EDGE_SCHEDULER_ENABLED
+              value: "true"
+            - name: EDGE_SCHEDULER_PRIORITY
+              value: "medium"
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 90
+            periodSeconds: 15
+            timeoutSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            failureThreshold: 30
+            periodSeconds: 5
+      restartPolicy: Always

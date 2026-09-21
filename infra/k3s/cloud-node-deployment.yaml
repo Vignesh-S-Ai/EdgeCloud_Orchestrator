@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-node
+  namespace: edgecloud
+  labels:
+    app: cloud-node
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloud-node
+  template:
+    metadata:
+      labels:
+        app: cloud-node
+    spec:
+      imagePullSecrets:
+        - name: ecr-registry-secret
+      containers:
+        - name: cloud-node
+          image: 325580898273.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/cloud-node:latest
+          ports:
+            - containerPort: 8001
+          env:
+            - name: CLOUD_HOST
+              value: "0.0.0.0"
+            - name: CLOUD_PORT
+              value: "8001"
+            - name: CLOUD_LOG_LEVEL
+              value: "INFO"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1300Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            failureThreshold: 30
+            periodSeconds: 5
