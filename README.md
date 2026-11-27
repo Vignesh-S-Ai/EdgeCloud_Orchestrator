@@ -43,6 +43,7 @@ infra/terraform/      # AWS VPC, EC2, ECR, security groups, RDS, IAM
 infra/k3s/            # K8s namespace, deployments, services, KubeEdge Rules
 infra/rebuild/        # 8-stage rebuild pipeline (00-collect … 08-validate)
 docs/                 # Architecture, integration, validation, benchmark, rebuild guides
+frontend/             # React dashboard (Vite + Tailwind + Recharts)
 diagrams/             # SystemArchitecture, Deployment, Scheduler, Workflow
 ```
 
@@ -90,6 +91,37 @@ Terraform from `infra/terraform` (see `docs/REBUILD_QUICKSTART.md` and `infra/re
 
 Orchestrator edge URL: `http://10.0.1.113:9443/edge-ec2-node/edgecloud` (CloudCore REST :9443 -> ServiceBus). Scheduler metrics timeout `2.0s`, policy thresholds edge `70/70/85`, cloud `80/80/90`, max latency `200ms`.
 
+## Dashboard (frontend/)
+
+React + TypeScript + Vite + Tailwind + Recharts + Lucide dashboard with 7
+modules: Overview, Live Orchestration, Edge Node, Cloud Node, Workloads,
+Inference Monitor, Logs & Monitoring. Read-only — it never mutates backend or
+AWS state.
+
+```bash
+cd frontend
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # tsc --noEmit + vite build -> dist/
+npm run preview    # serve dist/ on :4173
+```
+
+Two data modes, switched from the top bar:
+
+- **demo** (default) — data from `src/services/mock/mockStore.ts`, flagged with
+  a visible **DEMO DATA** badge in the top bar/sidebar/footer.
+- **live** (hybrid) — calls the real endpoints (`edge :8000`, `cloud :8001`,
+  `scheduler :8002`, `orchestrator :8003`); all four already allow CORS.
+  Views with a backing endpoint (`/health`, `/metrics`, `/`, `POST /decision`)
+  show real data behind a green **LIVE DATA** chip; views the backend does not
+  serve yet (history, logs, workloads, time series) fall back to the mock
+  service behind a dashed **SAMPLE DATA** chip, so mock values are never
+  presented as live.
+
+Config via `frontend/.env` (`VITE_DATA_MODE`, `VITE_EDGE_URL`,
+`VITE_CLOUD_URL`, `VITE_SCHEDULER_URL`, `VITE_ORCHESTRATOR_URL`,
+`VITE_REFRESH_INTERVAL_MS`, `VITE_USE_PROXY`). Full docs: `frontend/README.md`.
+
 ## Testing
 
 - `edge/tests`: 15 cases (health, metrics, detect, video frame_step)
@@ -112,7 +144,7 @@ Scheduler `/decision` (no inference, `docs/phase10/10E/p10_10e_bench.py`):
 ## Limitations
 
 - PostgreSQL RDS provisioned but no application code connects to it
-- No React dashboard (planned), no Prometheus/Grafana
+- React dashboard is read-only (no Prometheus/Grafana yet)
 - No TLS on orchestrator public API or CloudCore REST
 - No automatic edge->cloud failover (cloud->edge fallback only for high priority when cloud fails)
 - Physical camera not demonstrated (file/RTSP/webcam index supported)

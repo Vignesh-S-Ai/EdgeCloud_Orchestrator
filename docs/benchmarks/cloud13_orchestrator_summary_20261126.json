@@ -1,0 +1,66 @@
+{
+    "experiment":  "Full orchestrator live-metrics benchmark",
+    "date_utc":  "2026-11-26T17:38:58Z",
+    "requests":  100,
+    "success":  100,
+    "failed":  0,
+    "success_rate_pct":  100,
+    "selected_targets":  {
+                             "error":  0,
+                             "queue":  0,
+                             "edge":  100,
+                             "cloud":  0
+                         },
+    "fallback_count":  0,
+    "detection_classes":  [
+                              "book",
+                              "clock",
+                              "cup"
+                          ],
+    "overall":  {
+                    "roundtrip_mean_ms":  1788.06,
+                    "roundtrip_median_ms":  1298.95,
+                    "roundtrip_p95_ms":  3520.38,
+                    "scheduler_mean_ms":  1504.09,
+                    "scheduler_median_ms":  1183.49,
+                    "scheduler_p95_ms":  2691.13,
+                    "inference_mean_ms":  254.86,
+                    "inference_median_ms":  114.95,
+                    "inference_p95_ms":  722.05,
+                    "total_mean_ms":  1758.97,
+                    "total_median_ms":  1295.94,
+                    "total_p95_ms":  3289.16
+                },
+    "per_concurrency":  [
+                            {
+                                "c":  1,
+                                "scheduler_mean_ms":  1107.42,
+                                "inference_mean_ms":  116.5,
+                                "total_mean_ms":  1223.95
+                            },
+                            {
+                                "c":  2,
+                                "scheduler_mean_ms":  1131.73,
+                                "inference_mean_ms":  122.88,
+                                "total_mean_ms":  1254.63
+                            },
+                            {
+                                "c":  4,
+                                "scheduler_mean_ms":  1461.64,
+                                "inference_mean_ms":  211.44,
+                                "total_mean_ms":  1673.11
+                            },
+                            {
+                                "c":  8,
+                                "scheduler_mean_ms":  2315.56,
+                                "inference_mean_ms":  568.6,
+                                "total_mean_ms":  2884.18
+                            }
+                        ],
+    "notes":  [
+                  "Real Sampleimage.jpg and live metrics",
+                  "100 requests per target workflow, 25 per concurrency C1/C2/C4/C8",
+                  "All selected Edge; no failover exercised",
+                  "This is the complete /orchestrate path"
+              ]
+}

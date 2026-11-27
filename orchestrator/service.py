@@ -77,45 +77,71 @@ class OrchestrationService:
 
         try:
             if target == "edge":
-                actual_target = "edge"
                 inference_result, inference_ms = await self._run_edge(req)
+                actual_target = "edge"
             elif target == "cloud":
-                actual_target = "cloud"
                 inference_result, inference_ms = await self._run_cloud(req)
+                actual_target = "cloud"
             else:
                 raise HTTPException(
                     status_code=503,
                     detail=f"Workload not executed now: target={target} ({reason})",
                 )
         except UpstreamError as exc:
-            # 4xx from the node is a client error (e.g. undecodable image):
-            # never fall back, surface it as-is.
+            # Invalid requests (for example, an undecodable image) must never
+            # be retried on another node.
             if exc.status_code and 400 <= exc.status_code < 500:
                 raise HTTPException(
                     status_code=exc.status_code, detail=exc.message
                 ) from exc
-            # Node failure (5xx / transport): fall back to edge only when the
-            # cloud was selected, the workload is high priority and the edge
-            # node is healthy.
-            if (
-                target == "cloud"
-                and priority == "high"
-                and await self._edge_available()
-            ):
-                logger.warning(
-                    "Cloud inference failed (%s); falling back to edge", exc
-                )
-                fallback_used = True
-                fallback_reason = (
-                    f"Cloud inference failed ({exc.message}); fallback to edge"
-                )
-                actual_target = "edge"
-                inference_result, inference_ms = await self._run_edge(req)
-            else:
+
+            # Symmetric failover is deliberately restricted to high-priority
+            # workloads. Verify the alternate node's health before retrying.
+            fallback_target: Optional[str] = None
+            if target == "cloud" and priority == "high":
+                if await self._edge_available():
+                    fallback_target = "edge"
+            elif target == "edge" and priority == "high":
+                if await self._cloud_available():
+                    fallback_target = "cloud"
+
+            if fallback_target is None:
                 raise HTTPException(
                     status_code=503,
-                    detail=f"Inference failed: {exc.message}",
+                    detail=f"Inference failed on {target}: {exc.message}",
                 ) from exc
+
+            logger.warning(
+                "%s inference failed (%s); falling back to %s",
+                target,
+                exc,
+                fallback_target,
+            )
+            fallback_used = True
+            fallback_reason = (
+                f"{target.capitalize()} inference failed ({exc.message}); "
+                f"fallback to {fallback_target}"
+            )
+            try:
+                if fallback_target == "edge":
+                    inference_result, inference_ms = await self._run_edge(req)
+                else:
+                    inference_result, inference_ms = await self._run_cloud(req)
+                actual_target = fallback_target
+            except UpstreamError as fallback_exc:
+                logger.error(
+                    "Fallback inference on %s also failed: %s",
+                    fallback_target,
+                    fallback_exc,
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail=(
+                        f"Inference failed on {target}: {exc.message}; "
+                        f"fallback to {fallback_target} failed: "
+                        f"{fallback_exc.message}"
+                    ),
+                ) from fallback_exc
 
         total_ms = round((time.perf_counter() - start) * 1000.0, 2)
         return OrchestrationResult(
@@ -154,8 +180,17 @@ class OrchestrationService:
         return result, round((time.perf_counter() - t0) * 1000.0, 2)
 
     async def _edge_available(self) -> bool:
+        """Return whether Edge is healthy enough to receive fallback work."""
         try:
             await self._edge.health()
+            return True
+        except UpstreamError:
+            return False
+
+    async def _cloud_available(self) -> bool:
+        """Return whether Cloud is healthy enough to receive fallback work."""
+        try:
+            await self._cloud.health()
             return True
         except UpstreamError:
             return False

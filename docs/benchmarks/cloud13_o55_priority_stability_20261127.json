@@ -1,0 +1,39 @@
+{
+  "milestone": "O5.5",
+  "title": "Scheduler Decision Stability and Priority-Aware Validation",
+  "tested_at_utc": "2026-11-26T19:33:37.826044Z",
+  "endpoint": "http://127.0.0.1:8002/decision",
+  "policy": "rule_based",
+  "method": "Live scheduler API using synthetic metric snapshots; five repetitions per static scenario and six-step threshold-jitter sequence for each priority. No inference workloads or deployment changes.",
+  "priority_thresholds": {"low": 70.0, "medium": 75.0, "high": 85.0},
+  "disk_threshold_all_priorities": 85.0,
+  "static_scenarios": 27,
+  "static_requests": 135,
+  "jitter_requests": 18,
+  "total_requests": 153,
+  "http_200": 153,
+  "expected_decision_matches": 153,
+  "all_http_success": true,
+  "all_expected_matches": true,
+  "scenario_groups": [
+    "CPU below/at/above threshold for Low, Medium, High",
+    "RAM below/at/above threshold for Low, Medium, High",
+    "Disk at 85.0% and above at 85.1% for all priorities",
+    "Poor network with Edge overloaded: High=EDGE, Low/Medium=QUEUE"
+  ],
+  "jitter_sequences": {
+    "low": {"cpu_percent": [69.9,70.1,69.9,70.1,70.0,70.1], "targets": ["edge","cloud","edge","cloud","edge","cloud"], "switches": 5},
+    "medium": {"cpu_percent": [74.9,75.1,74.9,75.1,75.0,75.1], "targets": ["edge","cloud","edge","cloud","edge","cloud"], "switches": 5},
+    "high": {"cpu_percent": [84.9,85.1,84.9,85.1,85.0,85.1], "targets": ["edge","cloud","edge","cloud","edge","cloud"], "switches": 5}
+  },
+  "jitter_switches_total": 15,
+  "interpretation": "All tested decisions matched the rule-based expected outcomes. The alternating jitter sequence demonstrates threshold-driven placement oscillation because the current policy has no hysteresis/debounce state. This test does not establish mitigation of oscillation.",
+  "limitations": [
+    "Synthetic metric inputs, not live resource telemetry.",
+    "Scheduler decision endpoint validation only; no inference execution.",
+    "No ML policy or autonomous learning evaluated.",
+    "No deployment, pod, or scheduler configuration changes."
+  ],
+  "ssm_command_id": "2fd17750-4245-4e94-bc0b-008b5fbe86b9",
+  "ssm_status": "Success"
+}

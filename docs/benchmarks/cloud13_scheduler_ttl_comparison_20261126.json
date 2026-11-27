@@ -1,0 +1,21 @@
+{
+    "pre_ttl":  {
+                    "scheduler_mean_ms":  1504.09,
+                    "total_mean_ms":  1758.97,
+                    "total_median_ms":  1295.94,
+                    "total_p95_ms":  3289.16
+                },
+    "configuration":  "SCHEDULER_METRICS_TTL_SEC=2",
+    "post_ttl":  {
+                     "scheduler_mean_ms":  487.85,
+                     "total_mean_ms":  811.88,
+                     "total_median_ms":  497.18,
+                     "total_p95_ms":  2001.96
+                 },
+    "reduction_pct":  {
+                          "scheduler_mean":  67.6,
+                          "total_mean":  53.8,
+                          "total_median":  61.6,
+                          "total_p95":  39.1
+                      }
+}

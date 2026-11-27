@@ -37,6 +37,27 @@ kubectl create secret docker-registry ecr-registry-secret \
   -n "${EDGE_NAMESPACE}" \
   --dry-run=client -o yaml | kubectl apply -f -
 
+# --- Step 2b: Normalize placeholder values + label cloud node for placement ---
+# The three control-plane pods (orchestrator/scheduler/cloud-node) carry
+# nodeSelector "node-role: cloud" (see infra/k3s/*-deployment.yaml); the edge
+# pod carries kubernetes.io/hostname=edge-ec2-node. Label MUST exist first.
+echo ""
+echo "--- Preparing node placement (node-role: cloud) ---"
+if [ -z "${CLOUD_PRIVATE_IP:-}" ] || [[ "${CLOUD_PRIVATE_IP}" == \<* ]]; then
+  echo "CLOUD_PRIVATE_IP was a placeholder - deriving from AWS..."
+  CLOUD_PRIVATE_IP=$(aws ec2 describe-instances --instance-ids "${CLOUD_INSTANCE_ID}" \
+    --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text \
+    --region "${AWS_REGION}" --profile "${AWS_PROFILE}")
+fi
+# Derive the real K3s cloud node name from the cluster itself (never from stale docs)
+CLOUD_NODE_NAME=$(kubectl get nodes -o name | grep -v edge-ec2-node | head -1 | sed 's|^node/||')
+if [ -z "${CLOUD_NODE_NAME}" ]; then
+  echo "ERROR: no cloud node found in cluster (kubectl get nodes)" >&2
+  exit 1
+fi
+kubectl label node "${CLOUD_NODE_NAME}" node-role=cloud --overwrite
+echo "Labeled cloud node: ${CLOUD_NODE_NAME} -> node-role=cloud"
+
 # --- Step 3: Update image references in manifests ---
 echo ""
 echo "--- Updating image references for new account ---"

@@ -49,6 +49,7 @@ class BasePolicy:
         edge: Optional[EdgeMetrics],
         cloud: Optional[CloudMetrics],
         network: Optional[NetworkMetrics],
+        previous_target: Optional[Target] = None,
     ) -> Decision:
         raise NotImplementedError
 
@@ -102,6 +103,7 @@ class RuleBasedPolicy(BasePolicy):
         edge: Optional[EdgeMetrics],
         cloud: Optional[CloudMetrics],
         network: Optional[NetworkMetrics],
+        previous_target: Optional[Target] = None,
     ) -> Decision:
         s = self._s
         now = datetime.now(timezone.utc)
@@ -156,6 +158,36 @@ class RuleBasedPolicy(BasePolicy):
                     f"Edge and cloud both saturated "
                     f"(edge: {', '.join(edge_violations)}; "
                     f"cloud: {', '.join(cloud_violations)}); no healthy placement available."
+                ),
+                timestamp=now,
+            )
+
+        # Hysteresis: once a workload has moved to CLOUD, do not immediately
+        # bounce it back at the ordinary overload threshold. Require every Edge
+        # resource to clear a lower recovery threshold. Priority bias is retained.
+        recovery_margin = max(0.0, s.hysteresis_margin_percent)
+        recovery_ready = (
+            edge.cpu_percent <= s.edge_cpu_threshold + bias - recovery_margin
+            and edge.ram_percent <= s.edge_ram_threshold + bias - recovery_margin
+            and edge.disk_percent <= s.edge_disk_threshold - recovery_margin
+        )
+        if (
+            previous_target is Target.CLOUD
+            and edge_ok
+            and not recovery_ready
+            and cloud_ok
+            and latency_ok
+        ):
+            return Decision(
+                workload_id=workload.workload_id,
+                target=Target.CLOUD,
+                score=score,
+                priority=workload.priority,
+                reason=(
+                    f"Edge is below placement thresholds but has not cleared the "
+                    f"{recovery_margin:.1f}-point recovery margin; retaining cloud placement "
+                    f"(CPU {edge.cpu_percent:.1f}%, RAM {edge.ram_percent:.1f}%, "
+                    f"DISK {edge.disk_percent:.1f}%)."
                 ),
                 timestamp=now,
             )

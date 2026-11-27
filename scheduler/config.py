@@ -62,6 +62,13 @@ class SchedulerSettings(BaseSettings):
     priority_edge_bias_medium: float = 5.0
     priority_edge_bias_high: float = 15.0
 
+    # Stateful placement stabilization. A CLOUD workload returns to EDGE only
+    # after all Edge resources fall this many percentage points below their
+    # current priority-adjusted thresholds. State expires to bound memory.
+    hysteresis_margin_percent: float = 5.0
+    placement_state_ttl_sec: float = 300.0
+    placement_state_max_entries: int = 10000
+
     # ------------------------------------------------------------------
     # Metrics client
     # ------------------------------------------------------------------

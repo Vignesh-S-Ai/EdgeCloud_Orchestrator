@@ -1,0 +1,15 @@
+{
+  "milestone": "O5.7",
+  "title": "Live Telemetry Placement Validation",
+  "date": "2026-11-27",
+  "environment": "Deployed Kubernetes edgecloud namespace",
+  "scheduler_image": "171743139339.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/scheduler:o56-hysteresis-20261127",
+  "input_mode": "Live edge/cloud /metrics endpoints and live edge-to-cloud health latency probe; no synthetic metric snapshots",
+  "edge_metrics_observed": {"cpu_percent": 1.0, "ram_percent": 32.1, "disk_percent": 20.1},
+  "cloud_metrics_observed": {"cpu_percent": 3.5, "ram_percent": 63.7, "disk_percent": 30.3},
+  "network_latency_ms_observed_range": [12.8, 98.5],
+  "workload_matrix": {"priorities": ["low", "medium", "high"], "requests_per_priority": 5, "total_requests": 15},
+  "results": {"http_200": 15, "http_errors": 0, "edge_placements": 15, "cloud_placements": 0, "queue_or_error_placements": 0, "placement_switches_within_each_workload_sequence": 0},
+  "interpretation": "At the observed low edge utilization, all three priorities correctly remained on Edge across repeated live-metric decisions. This validates live metric acquisition and scheduler API integration under the observed healthy conditions; it does not validate overload-triggered live offload or run inference workloads.",
+  "limitations": ["Only one naturally observed resource condition was exercised; no live overload was induced.", "No inference requests were executed as part of this milestone.", "This validates current live telemetry inputs and decision path, not autonomous long-duration adaptation."]
+}

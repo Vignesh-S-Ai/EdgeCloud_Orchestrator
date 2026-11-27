@@ -1,3 +1,8 @@
+C:\Vignpro\EdgeCloud-Orchestrator\infra\k3s\edge-node-deployment.yaml: text/plain (text)
+
+--- C:\Vignpro\EdgeCloud-Orchestrator\infra\k3s\edge-node-deployment.yaml contents: ---
+[Reading 68 lines from start (total: 68 lines, 0 remaining)]
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,7 +26,7 @@ spec:
         kubernetes.io/hostname: wsl2-edge-node
       containers:
         - name: edge-node
-          image: 325580898273.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/edge-node:latest
+          image: 171743139339.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/edge-node:health-camera-optional-20261127
           ports:
             - containerPort: 8000
               hostPort: 8000
@@ -66,3 +71,5 @@ spec:
             failureThreshold: 30
             periodSeconds: 5
       restartPolicy: Always
+
+[executed on device: VICTOS (60d55134-d5a1-4a97-ac09-e3855b2750fd)]

@@ -1,0 +1,24 @@
+{
+    "experiment":  "Isolated DecisionEngine metrics TTL A/B test",
+    "requests_per_mode":  10,
+    "no_cache":  {
+                     "ttl_sec":  0,
+                     "mean_ms":  1193.53,
+                     "median_ms":  1150.29,
+                     "p95_ms":  1602.37
+                 },
+    "ttl_2s":  {
+                   "ttl_sec":  2,
+                   "mean_including_cold_ms":  177.83,
+                   "median_including_cold_ms":  85.19,
+                   "p95_including_cold_ms":  1182.59,
+                   "cold_first_request_ms":  1182.59,
+                   "warm_9_mean_ms":  66.19,
+                   "warm_9_median_ms":  85.01
+               },
+    "notes":  [
+                  "Executed in an isolated Python process inside scheduler pod; did not change live Deployment",
+                  "Only /metrics resource snapshots are cached; /health latency probe remains live",
+                  "All decisions selected Edge"
+              ]
+}

@@ -1,0 +1,116 @@
+{
+  "milestone": "O5.12",
+  "title": "503 Root-Cause and Scheduler Latency Diagnostic",
+  "date": "2026-11-27",
+  "status": "DIAGNOSTIC_COMPLETE",
+  "deployment_changes": false,
+  "scheduler_configuration_live": {
+    "SCHEDULER_METRICS_TTL_SEC": "2",
+    "SCHEDULER_HYSTERESIS_MARGIN_PERCENT": "5",
+    "SCHEDULER_PLACEMENT_STATE_TTL_SEC": "300",
+    "SCHEDULER_PLACEMENT_STATE_MAX_ENTRIES": "10000"
+  },
+  "baseline_without_injected_edge_pressure": {
+    "requests": 15,
+    "concurrency_per_round": 3,
+    "rounds": 5,
+    "http_200": 15,
+    "http_503": 0,
+    "success_rate_percent": 100.0,
+    "mean_scheduler_latency_ms": 902.81,
+    "mean_inference_latency_ms": 265.42,
+    "selected_actual_target": "edge",
+    "per_request": [
+      {"round":1,"priority":"low","status":200,"scheduler_ms":1365.09,"inference_ms":201.96,"total_ms":1567.07},
+      {"round":1,"priority":"medium","status":200,"scheduler_ms":1364.8,"inference_ms":364.18,"total_ms":1729.01},
+      {"round":1,"priority":"high","status":200,"scheduler_ms":1366.01,"inference_ms":288.2,"total_ms":1654.23},
+      {"round":2,"priority":"low","status":200,"scheduler_ms":289.82,"inference_ms":281.86,"total_ms":571.7},
+      {"round":2,"priority":"medium","status":200,"scheduler_ms":270.28,"inference_ms":211.41,"total_ms":481.71},
+      {"round":2,"priority":"high","status":200,"scheduler_ms":278.05,"inference_ms":140.65,"total_ms":418.73},
+      {"round":3,"priority":"low","status":200,"scheduler_ms":1267.11,"inference_ms":363.39,"total_ms":1630.53},
+      {"round":3,"priority":"medium","status":200,"scheduler_ms":1262.17,"inference_ms":222.17,"total_ms":1484.36},
+      {"round":3,"priority":"high","status":200,"scheduler_ms":1289.59,"inference_ms":253.4,"total_ms":1543.01},
+      {"round":4,"priority":"low","status":200,"scheduler_ms":292.28,"inference_ms":213.07,"total_ms":505.37},
+      {"round":4,"priority":"medium","status":200,"scheduler_ms":321.09,"inference_ms":277.67,"total_ms":598.78},
+      {"round":4,"priority":"high","status":200,"scheduler_ms":322.11,"inference_ms":365.85,"total_ms":687.98},
+      {"round":5,"priority":"low","status":200,"scheduler_ms":1275.1,"inference_ms":276.11,"total_ms":1551.23},
+      {"round":5,"priority":"medium","status":200,"scheduler_ms":1293.51,"inference_ms":185.83,"total_ms":1479.36},
+      {"round":5,"priority":"high","status":200,"scheduler_ms":1285.08,"inference_ms":335.59,"total_ms":1620.7}
+    ]
+  },
+  "direct_probe_diagnostics": {
+    "edge_metrics_via_cloud_host_tunnel": {
+      "status": 200,
+      "samples": 5,
+      "latency_ms": [1009.75,1009.14,1008.48,1009.53,1011.13],
+      "mean_latency_ms": 1009.61,
+      "bytes": 181
+    },
+    "edge_health_via_cloud_host_tunnel": {
+      "status": 200,
+      "samples": 5,
+      "latency_ms": [10.89,8.62,6.94,8.45,10.98],
+      "mean_latency_ms": 9.18
+    },
+    "cloud_metrics": {
+      "scheduler_logs_confirmed_http_200": true,
+      "direct_probe_attempt": "invalid tunnel path and a separate kubectl jsonpath quoting error; no valid direct latency number retained"
+    },
+    "interpretation": "Edge metrics over the KubeEdge tunnel is the dominant measurable probe cost. Edge health RTT is small. The 2-second metrics cache is already enabled in the live scheduler; observed faster scheduler calls are consistent with cache hits, while refreshes incur roughly one second."
+  },
+  "edge_pressure_reproduction": {
+    "edge_cpu_percent": 100.0,
+    "edge_pressure_method": "Two bounded CPU worker processes on Edge EC2 for approximately 60 seconds",
+    "concurrent_requests_per_round": 3,
+    "rounds": 6,
+    "total_requests": 18,
+    "http_200": 14,
+    "http_503": 4,
+    "success_rate_percent": 77.78,
+    "mean_scheduler_latency_successes_ms": 805.75,
+    "errors": [
+      {"round":1,"priority":"medium","status":503,"reason":"target=queue; Edge CPU 100% > 75%; Cloud offload not viable because measured network latency was 233.1ms > 200ms"},
+      {"round":2,"priority":"low","status":503,"reason":"target=queue; Edge CPU 100% > 70%; Cloud offload not viable because measured network latency was 267.6ms > 200ms"},
+      {"round":2,"priority":"medium","status":503,"reason":"target=queue; Edge CPU 100% > 75%; Cloud offload not viable because measured network latency was 252.3ms > 200ms"},
+      {"round":3,"priority":"low","status":503,"reason":"target=queue; Edge CPU 100% > 70%; Cloud offload not viable because measured network latency was 236.5ms > 200ms"}
+    ],
+    "successful_requests": [
+      {"round":1,"priority":"low","target":"cloud","scheduler_ms":1322.7,"inference_ms":327.29,"detections":3},
+      {"round":1,"priority":"high","target":"cloud","scheduler_ms":1322.44,"inference_ms":219.28,"detections":3},
+      {"round":2,"priority":"high","target":"cloud","scheduler_ms":332.2,"inference_ms":120.25,"detections":3},
+      {"round":3,"priority":"medium","target":"cloud","scheduler_ms":1294.78,"inference_ms":123.83,"detections":3},
+      {"round":3,"priority":"high","target":"edge","scheduler_ms":1293.17,"inference_ms":222.94,"detections":3},
+      {"round":4,"priority":"low","target":"cloud","scheduler_ms":176.11,"inference_ms":423.13,"detections":3},
+      {"round":4,"priority":"medium","target":"cloud","scheduler_ms":177.67,"inference_ms":342.24,"detections":3},
+      {"round":4,"priority":"high","target":"cloud","scheduler_ms":257.22,"inference_ms":138.59,"detections":3},
+      {"round":5,"priority":"low","target":"cloud","scheduler_ms":1421.58,"inference_ms":184.09,"detections":3},
+      {"round":5,"priority":"medium","target":"cloud","scheduler_ms":1419.66,"inference_ms":264.99,"detections":3},
+      {"round":5,"priority":"high","target":"cloud","scheduler_ms":1344.55,"inference_ms":341.62,"detections":3},
+      {"round":6,"priority":"low","target":"cloud","scheduler_ms":302.22,"inference_ms":298.69,"detections":3},
+      {"round":6,"priority":"medium","target":"cloud","scheduler_ms":226.11,"inference_ms":195.06,"detections":3},
+      {"round":6,"priority":"high","target":"cloud","scheduler_ms":390.04,"inference_ms":116.23,"detections":3}
+    ],
+    "confirmed_503_semantics": "All four reproduced HTTP 503 responses were intentional QUEUE decisions from the placement policy, not demonstrated scheduler crashes, inference failures, or pod failures."
+  },
+  "root_cause": {
+    "primary_503_cause": "When Edge CPU is overloaded and measured Edge-to-Cloud health RTT exceeds the 200ms policy limit, Low and Medium priority workloads are assigned QUEUE. The orchestrator maps non-edge/non-cloud targets to HTTP 503 with a clear detail string.",
+    "high_priority_behavior": "High priority is allowed to remain on Edge as best effort under poor network conditions, or to offload when Cloud is viable.",
+    "latency_bottleneck": "Edge /metrics fetch through KubeEdge is approximately 1.01 seconds on the measured host-side path. Health RTT is approximately 9ms. The scheduler already has a 2-second metrics TTL cache configured.",
+    "prior_O5_11_caveat": "O5.11 did not retain its five HTTP 503 bodies. This reproduction establishes the policy-generated 503 mechanism under the same overload/network-constrained condition, but does not prove every O5.11 response had the same reason."
+  },
+  "limitations": [
+    "The baseline and pressure phases are diagnostic samples, not a large-scale throughput benchmark.",
+    "The cloud metrics direct latency attempt was invalid and is explicitly excluded.",
+    "The Edge metrics direct timings were measured from the Cloud EC2 host through its local tunnel; scheduler logs independently confirm the same KubeEdge route is used by the scheduler.",
+    "The exact five O5.11 HTTP 503 bodies remain unavailable.",
+    "No code or deployment change was made in O5.12."
+  ],
+  "cluster_health": {
+    "orchestrator_health": "ok",
+    "cloud_node_ready": "1/1",
+    "edge_node_ready": "1/1",
+    "orchestrator_ready": "1/1",
+    "scheduler_ready": "1/1",
+    "pod_restarts": 0
+  }
+}

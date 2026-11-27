@@ -68,6 +68,7 @@ class HealthStatus(BaseModel):
     version: str
     model_loaded: bool
     camera_open: bool
+    camera_status: str
     timestamp: str
 
 
@@ -123,12 +124,10 @@ def health(request: Request) -> HealthStatus:
     model_loaded = detector.is_loaded()
     camera_open = bool(camera and camera.is_open())
 
-    if model_loaded and camera_open:
-        status = "ok"
-    elif model_loaded and not camera_open:
-        status = "degraded"
-    else:
-        status = "degraded"
+    # Camera input is optional: the primary Edge API accepts uploaded images.
+    # Report inference readiness separately from the optional camera attachment.
+    status = "ok" if model_loaded else "degraded"
+    camera_status = "connected" if camera_open else "not_connected"
 
     return HealthStatus(
         status=status,
@@ -136,6 +135,7 @@ def health(request: Request) -> HealthStatus:
         version=settings.version,
         model_loaded=model_loaded,
         camera_open=camera_open,
+        camera_status=camera_status,
         timestamp=str(time.time()),
     )
 

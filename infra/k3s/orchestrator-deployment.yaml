@@ -16,12 +16,12 @@ spec:
         app: orchestrator
     spec:
       nodeSelector:
-        kubernetes.io/hostname: ip-10-0-1-113.ap-south-1.compute.internal
+        node-role: cloud
       imagePullSecrets:
         - name: ecr-registry-secret
       containers:
         - name: orchestrator
-          image: 325580898273.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/orchestrator:latest
+          image: 171743139339.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/orchestrator:failover-20261126
           ports:
             - containerPort: 8003
           env:

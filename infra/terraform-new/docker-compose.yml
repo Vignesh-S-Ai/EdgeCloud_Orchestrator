@@ -1,0 +1,73 @@
+# Edge-Cloud Orchestration — Docker Compose for AWS EC2 deployment
+# Deployed by Terraform — services bound to localhost for internal use,
+# orchestrator exposed on host port 80.
+
+services:
+  cloud-node:
+    image: edgecloud-cloud:latest
+    container_name: cloud-node
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8001"
+    environment:
+      - CLOUD_HOST=0.0.0.0
+      - CLOUD_PORT=8001
+      - CLOUD_LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 90s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1300m
+
+  scheduler:
+    image: edgecloud-scheduler:latest
+    container_name: scheduler
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8002:8002"
+    environment:
+      - SCHEDULER_PORT=8002
+      - SCHEDULER_LOG_LEVEL=INFO
+    deploy:
+      resources:
+        limits:
+          memory: 200m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  orchestrator:
+    image: edgecloud-orchestrator:latest
+    container_name: orchestrator
+    restart: unless-stopped
+    ports:
+      - "80:8003"
+    depends_on:
+      cloud-node:
+        condition: service_healthy
+      scheduler:
+        condition: service_healthy
+    environment:
+      - ORCHESTRATOR_EDGE_URL=http://cloud-node:8000
+      - ORCHESTRATOR_CLOUD_URL=http://cloud-node:8001
+      - ORCHESTRATOR_SCHEDULER_URL=http://scheduler:8002
+      - ORCHESTRATOR_PORT=8003
+      - ORCHESTRATOR_LOG_LEVEL=INFO
+    deploy:
+      resources:
+        limits:
+          memory: 200m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3

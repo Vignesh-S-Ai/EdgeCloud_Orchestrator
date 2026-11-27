@@ -7,6 +7,8 @@ touching the engine or the API.
 """
 
 import logging
+import threading
+import time
 from typing import Optional
 
 import anyio
@@ -18,6 +20,7 @@ from .models import (
     Decision,
     EdgeMetrics,
     NetworkMetrics,
+    Target,
     Workload,
 )
 from .policies import BasePolicy, RuleBasedPolicy
@@ -38,6 +41,10 @@ class DecisionEngine:
             timeout_sec=settings.metrics_timeout_sec,
             ttl_sec=settings.metrics_ttl_sec,
         )
+        # Per-process placement memory. The lock makes lookup -> decision ->
+        # update atomic for concurrent requests handled by this engine.
+        self._placement_lock = threading.RLock()
+        self._placement_state: dict[str, tuple[Target, float]] = {}
 
     @property
     def policy(self) -> BasePolicy:
@@ -51,10 +58,48 @@ class DecisionEngine:
         network: Optional[NetworkMetrics],
     ) -> Decision:
         """Decide placement from explicit metrics snapshots."""
-        decision = self._policy.decide(workload, edge, cloud, network)
+        with self._placement_lock:
+            now = time.monotonic()
+            ttl = max(0.0, self._settings.placement_state_ttl_sec)
+            # Expire stale workload identities before reading or writing state.
+            if ttl == 0.0:
+                self._placement_state.clear()
+            else:
+                expired = [
+                    key for key, (_, updated_at) in self._placement_state.items()
+                    if now - updated_at > ttl
+                ]
+                for key in expired:
+                    self._placement_state.pop(key, None)
+
+            previous_target = None
+            state = self._placement_state.get(workload.workload_id)
+            if state is not None:
+                previous_target = state[0]
+
+            if isinstance(self._policy, RuleBasedPolicy):
+                decision = self._policy.decide(
+                    workload, edge, cloud, network, previous_target=previous_target
+                )
+            else:
+                decision = self._policy.decide(workload, edge, cloud, network)
+
+            # Only stable execution placements are remembered. QUEUE/ERROR do
+            # not erase the last known placement; expiry handles abandoned IDs.
+            if decision.target in (Target.EDGE, Target.CLOUD) and ttl > 0.0:
+                self._placement_state[workload.workload_id] = (decision.target, now)
+                max_entries = max(1, self._settings.placement_state_max_entries)
+                if len(self._placement_state) > max_entries:
+                    oldest = sorted(
+                        self._placement_state.items(), key=lambda item: item[1][1]
+                    )
+                    for key, _ in oldest[: len(self._placement_state) - max_entries]:
+                        self._placement_state.pop(key, None)
+
         logger.debug(
-            "workload=%s target=%s score=%s (%s)",
+            "workload=%s previous_target=%s target=%s score=%s (%s)",
             workload.workload_id,
+            previous_target.value if previous_target else None,
             decision.target.value,
             decision.score,
             decision.reason,

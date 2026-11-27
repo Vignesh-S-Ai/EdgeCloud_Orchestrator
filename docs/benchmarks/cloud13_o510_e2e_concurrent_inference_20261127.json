@@ -1,0 +1,69 @@
+{
+  "milestone": "O5.10",
+  "title": "End-to-End Concurrent Multi-Priority Inference Validation",
+  "date": "2026-11-27",
+  "image": {
+    "source": "/tmp/cloud13_sample.jpg",
+    "bytes": 37610,
+    "sha256": "cacdb9bc5e08c713231c1e45d3c620d40ef2145f1a8c3daef3dc0338584881a1"
+  },
+  "method": {
+    "entrypoint": "POST http://127.0.0.1:30083/orchestrate",
+    "concurrency": 3,
+    "priorities": ["low", "medium", "high"],
+    "rounds_per_phase": 2,
+    "phases": ["edge_pressure", "recovery"],
+    "metrics": "Live scheduler metrics; no synthetic placement snapshots",
+    "load": "Two bounded CPU workers on Edge EC2, 45 seconds"
+  },
+  "edge_metrics_under_pressure": {
+    "cpu_percent": 100.0,
+    "ram_percent": 32.2,
+    "disk_percent": 20.1
+  },
+  "cloud_metrics_under_pressure": {
+    "cpu_percent": 4.0,
+    "ram_percent": 64.1,
+    "disk_percent": 30.3
+  },
+  "edge_metrics_after_recovery": {
+    "cpu_percent": 1.5,
+    "ram_percent": 31.8,
+    "disk_percent": 20.1
+  },
+  "requests": [
+    {"phase":"edge_pressure","round":1,"priority":"low","http_status":200,"selected_target":"cloud","actual_target":"cloud","fallback_used":false,"scheduler_latency_ms":1321.33,"inference_latency_ms":412.35,"total_latency_ms":1733.70,"client_rtt_ms":1747.40,"detection_count":3},
+    {"phase":"edge_pressure","round":1,"priority":"medium","http_status":200,"selected_target":"cloud","actual_target":"cloud","fallback_used":false,"scheduler_latency_ms":1303.09,"inference_latency_ms":322.09,"total_latency_ms":1625.20,"client_rtt_ms":1647.62,"detection_count":3},
+    {"phase":"edge_pressure","round":1,"priority":"high","http_status":200,"selected_target":"cloud","actual_target":"cloud","fallback_used":false,"scheduler_latency_ms":1305.21,"inference_latency_ms":224.53,"total_latency_ms":1529.76,"client_rtt_ms":1532.26,"detection_count":3},
+    {"phase":"edge_pressure","round":2,"priority":"low","http_status":200,"selected_target":"cloud","actual_target":"cloud","fallback_used":false,"scheduler_latency_ms":268.32,"inference_latency_ms":160.23,"total_latency_ms":428.57,"client_rtt_ms":449.53,"detection_count":3},
+    {"phase":"edge_pressure","round":2,"priority":"medium","http_status":200,"selected_target":"cloud","actual_target":"cloud","fallback_used":false,"scheduler_latency_ms":371.35,"inference_latency_ms":154.77,"total_latency_ms":526.15,"client_rtt_ms":538.32,"detection_count":3},
+    {"phase":"edge_pressure","round":2,"priority":"high","http_status":200,"selected_target":"cloud","actual_target":"cloud","fallback_used":false,"scheduler_latency_ms":108.63,"inference_latency_ms":233.93,"total_latency_ms":342.59,"client_rtt_ms":344.42,"detection_count":3},
+    {"phase":"recovery","round":1,"priority":"low","http_status":200,"selected_target":"edge","actual_target":"edge","fallback_used":false,"scheduler_latency_ms":1377.26,"inference_latency_ms":293.34,"total_latency_ms":1670.62,"client_rtt_ms":1674.33,"detection_count":3},
+    {"phase":"recovery","round":1,"priority":"medium","http_status":200,"selected_target":"edge","actual_target":"edge","fallback_used":false,"scheduler_latency_ms":1399.80,"inference_latency_ms":304.67,"total_latency_ms":1704.50,"client_rtt_ms":1762.48,"detection_count":3},
+    {"phase":"recovery","round":1,"priority":"high","http_status":200,"selected_target":"edge","actual_target":"edge","fallback_used":false,"scheduler_latency_ms":1376.41,"inference_latency_ms":181.12,"total_latency_ms":1557.56,"client_rtt_ms":1572.22,"detection_count":3},
+    {"phase":"recovery","round":2,"priority":"low","http_status":200,"selected_target":"edge","actual_target":"edge","fallback_used":false,"scheduler_latency_ms":192.06,"inference_latency_ms":279.86,"total_latency_ms":471.93,"client_rtt_ms":476.77,"detection_count":3},
+    {"phase":"recovery","round":2,"priority":"medium","http_status":200,"selected_target":"edge","actual_target":"edge","fallback_used":false,"scheduler_latency_ms":290.94,"inference_latency_ms":243.28,"total_latency_ms":534.24,"client_rtt_ms":556.09,"detection_count":3},
+    {"phase":"recovery","round":2,"priority":"high","http_status":200,"selected_target":"edge","actual_target":"edge","fallback_used":false,"scheduler_latency_ms":192.11,"inference_latency_ms":193.18,"total_latency_ms":385.32,"client_rtt_ms":397.20,"detection_count":3}
+  ],
+  "summary": {
+    "requests": 12,
+    "http_200": 12,
+    "errors": 0,
+    "fallbacks": 0,
+    "edge_pressure": {"cloud": 6, "edge": 0},
+    "recovery": {"edge": 6, "cloud": 0},
+    "detections_per_request": 3
+  },
+  "cluster_validation": {
+    "deployments": {"cloud-node":"1/1","edge-node":"1/1","orchestrator":"1/1","scheduler":"1/1"},
+    "pod_restarts": 0,
+    "orchestrator_health": "ok",
+    "full_test_suite": "143 passed in 16.16s"
+  },
+  "limitations": [
+    "Three concurrent inference requests per round; not a large-scale capacity or saturation benchmark.",
+    "Two priority rounds per phase; short controlled validation window.",
+    "Detection counts are recorded, but no ground-truth accuracy evaluation was performed.",
+    "Latency includes live scheduler metric collection and orchestration overhead; it is not an isolated model-only benchmark."
+  ]
+}

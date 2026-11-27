@@ -1,0 +1,295 @@
+{
+  "milestone": "O5.4",
+  "title": "Adaptive Placement Under Changing Resource Conditions",
+  "tested_at_utc": "2026-11-26T19:13:01.119080+00:00",
+  "endpoint": "http://127.0.0.1:8002/decision",
+  "policy": "rule_based",
+  "method": "Live scheduler API with synthetic metric snapshots. Five repetitions per scenario and a sequential CPU transition series. No inference workload or deployment changes.",
+  "scenario_count": 19,
+  "scenario_requests": 95,
+  "transition_requests": 12,
+  "total_requests": 107,
+  "http_200_count": 107,
+  "all_expected_matches": true,
+  "all_http_success": true,
+  "scenario_summary": [
+    {
+      "scenario": "healthy",
+      "expected": "edge",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 36.189,
+      "p95_api_latency_ms": 89.47
+    },
+    {
+      "scenario": "CPU69",
+      "expected": "edge",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 1.096,
+      "p95_api_latency_ms": 1.294
+    },
+    {
+      "scenario": "CPU70",
+      "expected": "edge",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 1.072,
+      "p95_api_latency_ms": 1.144
+    },
+    {
+      "scenario": "CPU70.1",
+      "expected": "cloud",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 0.962,
+      "p95_api_latency_ms": 1.046
+    },
+    {
+      "scenario": "CPU95",
+      "expected": "cloud",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 17.577,
+      "p95_api_latency_ms": 83.138
+    },
+    {
+      "scenario": "RAM69",
+      "expected": "edge",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 0.974,
+      "p95_api_latency_ms": 1.026
+    },
+    {
+      "scenario": "RAM70",
+      "expected": "edge",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 1.082,
+      "p95_api_latency_ms": 1.456
+    },
+    {
+      "scenario": "RAM70.1",
+      "expected": "cloud",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 17.447,
+      "p95_api_latency_ms": 82.263
+    },
+    {
+      "scenario": "Disk85",
+      "expected": "edge",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 0.991,
+      "p95_api_latency_ms": 1.034
+    },
+    {
+      "scenario": "Disk85.1",
+      "expected": "cloud",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 0.968,
+      "p95_api_latency_ms": 1.099
+    },
+    {
+      "scenario": "CloudCPU80",
+      "expected": "cloud",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 0.938,
+      "p95_api_latency_ms": 1.036
+    },
+    {
+      "scenario": "CloudCPU80.1",
+      "expected": "error",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 17.323,
+      "p95_api_latency_ms": 81.891
+    },
+    {
+      "scenario": "Cloud saturated Edge healthy",
+      "expected": "edge",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 1.004,
+      "p95_api_latency_ms": 1.063
+    },
+    {
+      "scenario": "Both saturated",
+      "expected": "error",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 0.985,
+      "p95_api_latency_ms": 1.051
+    },
+    {
+      "scenario": "Latency200",
+      "expected": "cloud",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 17.421,
+      "p95_api_latency_ms": 82.596
+    },
+    {
+      "scenario": "Latency200.1",
+      "expected": "queue",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 0.986,
+      "p95_api_latency_ms": 1.074
+    },
+    {
+      "scenario": "High poor network",
+      "expected": "edge",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 0.948,
+      "p95_api_latency_ms": 1.25
+    },
+    {
+      "scenario": "Medium poor network",
+      "expected": "queue",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 17.183,
+      "p95_api_latency_ms": 81.978
+    },
+    {
+      "scenario": "RAM80",
+      "expected": "cloud",
+      "requests": 5,
+      "http_200": 5,
+      "expected_matches": 5,
+      "mean_api_latency_ms": 1.299,
+      "p95_api_latency_ms": 1.477
+    }
+  ],
+  "transition_sequence": [
+    {
+      "step": 1,
+      "edge_cpu_percent": 20,
+      "expected": "edge",
+      "actual": "edge",
+      "http_status": 200,
+      "latency_ms": 1.006
+    },
+    {
+      "step": 2,
+      "edge_cpu_percent": 45,
+      "expected": "edge",
+      "actual": "edge",
+      "http_status": 200,
+      "latency_ms": 0.945
+    },
+    {
+      "step": 3,
+      "edge_cpu_percent": 65,
+      "expected": "edge",
+      "actual": "edge",
+      "http_status": 200,
+      "latency_ms": 1.026
+    },
+    {
+      "step": 4,
+      "edge_cpu_percent": 69,
+      "expected": "edge",
+      "actual": "edge",
+      "http_status": 200,
+      "latency_ms": 1.037
+    },
+    {
+      "step": 5,
+      "edge_cpu_percent": 70,
+      "expected": "edge",
+      "actual": "edge",
+      "http_status": 200,
+      "latency_ms": 1.009
+    },
+    {
+      "step": 6,
+      "edge_cpu_percent": 70.1,
+      "expected": "cloud",
+      "actual": "cloud",
+      "http_status": 200,
+      "latency_ms": 1.089
+    },
+    {
+      "step": 7,
+      "edge_cpu_percent": 75,
+      "expected": "cloud",
+      "actual": "cloud",
+      "http_status": 200,
+      "latency_ms": 0.958
+    },
+    {
+      "step": 8,
+      "edge_cpu_percent": 85,
+      "expected": "cloud",
+      "actual": "cloud",
+      "http_status": 200,
+      "latency_ms": 1.132
+    },
+    {
+      "step": 9,
+      "edge_cpu_percent": 95,
+      "expected": "cloud",
+      "actual": "cloud",
+      "http_status": 200,
+      "latency_ms": 1.056
+    },
+    {
+      "step": 10,
+      "edge_cpu_percent": 65,
+      "expected": "edge",
+      "actual": "edge",
+      "http_status": 200,
+      "latency_ms": 0.866
+    },
+    {
+      "step": 11,
+      "edge_cpu_percent": 40,
+      "expected": "edge",
+      "actual": "edge",
+      "http_status": 200,
+      "latency_ms": 0.886
+    },
+    {
+      "step": 12,
+      "edge_cpu_percent": 20,
+      "expected": "edge",
+      "actual": "edge",
+      "http_status": 200,
+      "latency_ms": 82.401
+    }
+  ],
+  "health_after_test": {
+    "cloud_node": "1/1 Ready",
+    "edge_node": "1/1 Ready",
+    "orchestrator": "1/1 Ready",
+    "scheduler": "1/1 Ready",
+    "scheduler_health_http": 200,
+    "scheduler_status": "ok",
+    "pod_restarts": 0
+  }
+}

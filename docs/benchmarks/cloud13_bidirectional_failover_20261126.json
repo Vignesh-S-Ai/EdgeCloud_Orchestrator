@@ -1,0 +1,67 @@
+{
+  "experiment": "Bidirectional orchestrator failover live failure-injection validation",
+  "date": "2026-11-26",
+  "deployed_image": "171743139339.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/orchestrator:failover-20261126",
+  "ecr_digest": "sha256:3b561a55d8430d853226c28c28f420428657e0ca0870fe129683a27f5629a910",
+  "unit_tests": {
+    "command": "python -m pytest -q",
+    "passed": 136,
+    "failed": 0,
+    "duration_seconds": 13.22
+  },
+  "failure_injection_method": "Temporarily changed only the orchestrator's upstream URL to 127.0.0.1:9, forcing a deterministic connection-refused error. The original URL was captured before injection and restored by an EXIT trap and explicit restore. Edge and Cloud inference deployments were not scaled or stopped.",
+  "edge_to_cloud": {
+    "injected_failure": "Orchestrator Edge URL temporarily set to http://127.0.0.1:9",
+    "priority": "high",
+    "selected_target": "edge",
+    "actual_target": "cloud",
+    "fallback_used": true,
+    "http_status": 200,
+    "scheduler_latency_ms": 151.62,
+    "inference_latency_ms": 144.26,
+    "total_latency_ms": 456.22,
+    "client_roundtrip_ms": 461.34,
+    "detections": 3,
+    "fallback_reason": "Edge inference failed (connection refused); fallback to cloud",
+    "restored_edge_url": "http://10.0.1.95:9443/edge-ec2-node/edgecloud"
+  },
+  "cloud_to_edge": {
+    "injected_failure": "Orchestrator Cloud URL temporarily set to http://127.0.0.1:9",
+    "priority": "high",
+    "selected_target": "cloud",
+    "actual_target": "edge",
+    "fallback_used": true,
+    "http_status": 200,
+    "scheduler_latency_ms": 194.01,
+    "inference_latency_ms": 171.63,
+    "total_latency_ms": 491.78,
+    "client_roundtrip_ms": 497.97,
+    "detections": 3,
+    "fallback_reason": "Cloud inference failed (connection refused); fallback to edge",
+    "restored_cloud_url": "http://cloud-node.edgecloud.svc:8001"
+  },
+  "post_restore_smoke": {
+    "orchestrator_replicas": "1/1",
+    "cloud_node_replicas": "1/1",
+    "edge_node_replicas": "1/1",
+    "scheduler_replicas": "1/1",
+    "normal_edge_request": {
+      "http_status": 200,
+      "selected_target": "edge",
+      "actual_target": "edge",
+      "fallback_used": false,
+      "detections": 3
+    },
+    "normal_cloud_request": {
+      "http_status": 200,
+      "selected_target": "cloud",
+      "actual_target": "cloud",
+      "fallback_used": false,
+      "detections": 3
+    },
+    "cloud_health": "ok",
+    "edge_health": "degraded: camera_open=false; model_loaded=true"
+  },
+  "policy": "Failover is only attempted for high-priority workloads. Client-side 4xx errors are not retried. Fallback requires the alternate service health endpoint to succeed. If fallback inference also fails, the orchestrator returns HTTP 503 with both failure details.",
+  "scope_boundary": "This was an orchestrator-to-upstream route failure injection, not a shutdown of the Edge or Cloud inference deployment. It validates connection failure handling and cross-tier retry behaviour without stopping either production inference service."
+}

@@ -29,10 +29,11 @@ echo ""
 cat <<EOF
 # --- On the cloud EC2 instance ---
 
-# Install K3s
+# Install K3s (node name = instance hostname / PrivateDnsName, matching
+# runbook Phase 7 — do NOT override --node-name, or it diverges from the
+# AWS PrivateDnsName used in rebuild.env and validation gates)
 curl -sfL https://get.k3s.io | K3S_TOKEN=\$(head -c 32 /dev/urandom | base64) sh -s - server \\
-  --write-kubeconfig-mode 644 \\
-  --node-name \$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4 | tr '.' '-').compute.internal
+  --write-kubeconfig-mode 644
 
 # Wait for node to be Ready
 sudo kubectl get nodes

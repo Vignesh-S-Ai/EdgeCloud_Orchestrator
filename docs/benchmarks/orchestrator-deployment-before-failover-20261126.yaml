@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+  namespace: edgecloud
+  labels:
+    app: orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orchestrator
+  template:
+    metadata:
+      labels:
+        app: orchestrator
+    spec:
+      nodeSelector:
+        node-role: cloud
+      imagePullSecrets:
+        - name: ecr-registry-secret
+      containers:
+        - name: orchestrator
+          image: 171743139339.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/orchestrator:latest
+          ports:
+            - containerPort: 8003
+          env:
+            - name: ORCHESTRATOR_EDGE_URL
+              value: "http://10.0.1.113:9443/edge-ec2-node/edgecloud"
+            - name: ORCHESTRATOR_CLOUD_URL
+              value: "http://cloud-node.edgecloud.svc:8001"
+            - name: ORCHESTRATOR_SCHEDULER_URL
+              value: "http://scheduler.edgecloud.svc:8002"
+            - name: ORCHESTRATOR_PORT
+              value: "8003"
+            - name: ORCHESTRATOR_LOG_LEVEL
+              value: "INFO"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 200Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            failureThreshold: 15
+            periodSeconds: 3

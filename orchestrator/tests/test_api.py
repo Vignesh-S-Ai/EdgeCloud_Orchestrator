@@ -116,10 +116,18 @@ class FakeEdgeClient:
 
 
 class FakeCloudClient:
-    def __init__(self, result=None, error=None):
+    def __init__(self, result=None, error=None, health_error=None):
         self.result = result or dict(DETECTION_RESULT)
         self.error = error
+        self.health_error = health_error
         self.infer_calls = []
+        self.health_calls = []
+
+    async def health(self):
+        self.health_calls.append(1)
+        if self.health_error:
+            raise self.health_error
+        return {"status": "ok", "service": "cloud-node"}
 
     async def infer(
         self, image_base64, confidence=None, annotated=False, classes=None
@@ -300,11 +308,13 @@ def test_cloud_failure_no_fallback_when_edge_down(client):
     assert len(edge.detect_calls) == 0
 
 
-def test_edge_failure_returns_503(client):
+def test_edge_failure_returns_503_for_medium_priority(client):
     edge = FakeEdgeClient(error=UpstreamError(503, "edge overloaded"))
-    _install(client, edge=edge)
-    resp = client.post("/orchestrate", json=_body())
+    cloud = FakeCloudClient()
+    _install(client, edge=edge, cloud=cloud)
+    resp = client.post("/orchestrate", json=_body(priority="medium"))
     assert resp.status_code == 503
+    assert len(cloud.infer_calls) == 0
 
 
 def test_invalid_image_returns_400(client):
@@ -362,3 +372,76 @@ def test_live_urls_passed_when_no_metrics(client):
     assert call["network_metrics"] is None
     assert call["edge_url"] == "http://localhost:8000"
     assert call["cloud_url"] == "http://localhost:8001"
+
+def test_edge_failure_falls_back_to_cloud_for_high_priority(client):
+    scheduler = FakeSchedulerClient(decision=EDGE_DECISION)
+    edge = FakeEdgeClient(error=UpstreamError(503, "edge overloaded"))
+    cloud = FakeCloudClient()
+    _install(client, scheduler=scheduler, edge=edge, cloud=cloud)
+
+    resp = client.post("/orchestrate", json=_body(priority="high"))
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["selected_target"] == "edge"
+    assert body["actual_target"] == "cloud"
+    assert body["fallback_used"] is True
+    assert "fallback to cloud" in body["fallback_reason"]
+    assert len(edge.detect_calls) == 1
+    assert len(cloud.health_calls) == 1
+    assert len(cloud.infer_calls) == 1
+
+
+def test_edge_failure_does_not_fall_back_for_medium_priority(client):
+    scheduler = FakeSchedulerClient(decision=EDGE_DECISION)
+    edge = FakeEdgeClient(error=UpstreamError(503, "edge overloaded"))
+    cloud = FakeCloudClient()
+    _install(client, scheduler=scheduler, edge=edge, cloud=cloud)
+
+    resp = client.post("/orchestrate", json=_body(priority="medium"))
+
+    assert resp.status_code == 503
+    assert len(cloud.health_calls) == 0
+    assert len(cloud.infer_calls) == 0
+
+
+def test_edge_failure_does_not_fall_back_when_cloud_is_unhealthy(client):
+    scheduler = FakeSchedulerClient(decision=EDGE_DECISION)
+    edge = FakeEdgeClient(error=UpstreamError(503, "edge overloaded"))
+    cloud = FakeCloudClient(
+        health_error=UpstreamError(0, "cloud health check failed")
+    )
+    _install(client, scheduler=scheduler, edge=edge, cloud=cloud)
+
+    resp = client.post("/orchestrate", json=_body(priority="high"))
+
+    assert resp.status_code == 503
+    assert len(cloud.health_calls) == 1
+    assert len(cloud.infer_calls) == 0
+
+
+def test_edge_client_error_does_not_trigger_cloud_fallback(client):
+    scheduler = FakeSchedulerClient(decision=EDGE_DECISION)
+    edge = FakeEdgeClient(
+        error=UpstreamError(400, "invalid image payload")
+    )
+    cloud = FakeCloudClient()
+    _install(client, scheduler=scheduler, edge=edge, cloud=cloud)
+
+    resp = client.post("/orchestrate", json=_body(priority="high"))
+
+    assert resp.status_code == 400
+    assert len(cloud.health_calls) == 0
+    assert len(cloud.infer_calls) == 0
+
+
+def test_edge_to_cloud_fallback_failure_returns_503(client):
+    scheduler = FakeSchedulerClient(decision=EDGE_DECISION)
+    edge = FakeEdgeClient(error=UpstreamError(503, "edge overloaded"))
+    cloud = FakeCloudClient(error=UpstreamError(503, "cloud inference failed"))
+    _install(client, scheduler=scheduler, edge=edge, cloud=cloud)
+
+    resp = client.post("/orchestrate", json=_body(priority="high"))
+
+    assert resp.status_code == 503
+    assert "fallback to cloud failed" in resp.json()["detail"]

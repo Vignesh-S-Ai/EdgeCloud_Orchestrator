@@ -1,0 +1,56 @@
+{
+    "experiment":  "Orchestrator Cloud offload branch with controlled synthetic runtime metrics",
+    "date_utc":  "2026-11-26T18:03:40Z",
+    "requests":  5,
+    "http_200":  5,
+    "selected_target":  "cloud",
+    "actual_target":  "cloud",
+    "fallback_used":  0,
+    "detections_per_request":  3,
+    "detection_classes":  [
+                              "book",
+                              "clock",
+                              "cup"
+                          ],
+    "synthetic_edge_metrics":  {
+                                   "cpu_percent":  95,
+                                   "ram_percent":  90,
+                                   "disk_percent":  95
+                               },
+    "synthetic_cloud_metrics":  {
+                                    "cpu_percent":  15,
+                                    "ram_percent":  25,
+                                    "disk_percent":  30
+                                },
+    "synthetic_network_metrics":  {
+                                      "latency_ms":  30,
+                                      "bandwidth_mbps":  1000
+                                  },
+    "scheduler_latency_ms":  [
+                                 14.39,
+                                 41.62,
+                                 13.03,
+                                 13.35,
+                                 13.35
+                             ],
+    "scheduler_mean_ms":  19.15,
+    "cloud_inference_latency_ms":  [
+                                       2794.35,
+                                       114.17,
+                                       176.19,
+                                       305.27,
+                                       172.05
+                                   ],
+    "first_request_cold_ms":  2794.35,
+    "warm_4_mean_ms":  191.92,
+    "warm_4_median_ms":  174.12,
+    "total_latency_ms":  [
+                             2808.76,
+                             155.81,
+                             189.24,
+                             318.64,
+                             185.42
+                         ],
+    "warm_4_total_mean_ms":  212.28,
+    "interpretation":  "Cloud placement and Cloud inference through the orchestrator verified using explicit synthetic metrics. This is a controlled offload-path test, not a live-metrics placement decision or failure failover test."
+}

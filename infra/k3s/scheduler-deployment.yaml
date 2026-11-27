@@ -15,11 +15,13 @@ spec:
       labels:
         app: scheduler
     spec:
+      nodeSelector:
+        node-role: cloud
       imagePullSecrets:
         - name: ecr-registry-secret
       containers:
         - name: scheduler
-          image: 325580898273.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/scheduler:latest
+          image: 171743139339.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/scheduler:o56-hysteresis-20261127
           ports:
             - containerPort: 8002
           env:
@@ -27,6 +29,14 @@ spec:
               value: "8002"
             - name: SCHEDULER_LOG_LEVEL
               value: "INFO"
+            - name: SCHEDULER_METRICS_TTL_SEC
+              value: "2"
+            - name: SCHEDULER_HYSTERESIS_MARGIN_PERCENT
+              value: "5"
+            - name: SCHEDULER_PLACEMENT_STATE_TTL_SEC
+              value: "300"
+            - name: SCHEDULER_PLACEMENT_STATE_MAX_ENTRIES
+              value: "10000"
           resources:
             requests:
               cpu: 50m

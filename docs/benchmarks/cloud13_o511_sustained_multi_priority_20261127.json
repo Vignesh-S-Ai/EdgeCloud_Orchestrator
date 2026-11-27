@@ -1,0 +1,84 @@
+{
+  "milestone": "O5.11",
+  "title": "Sustained Multi-Priority Load and Stability Benchmark",
+  "date": "2026-11-27",
+  "status": "PARTIAL_PASS_WITH_STABILITY_FINDINGS",
+  "method": {
+    "entrypoint": "POST /orchestrate",
+    "concurrency_per_round": 3,
+    "rounds_per_phase": 8,
+    "requests_per_phase": 24,
+    "total_requests": 48,
+    "priorities": ["low", "medium", "high"],
+    "edge_load": "Two bounded CPU workers on Edge EC2, 60 seconds",
+    "metrics": "Live Edge and Cloud metrics, no synthetic scheduler snapshots",
+    "image_bytes": 37610,
+    "image_sha256": "cacdb9bc5e08c713231c1e45d3c620d40ef2145f1a8c3daef3dc0338584881a1"
+  },
+  "resource_snapshots": {
+    "edge_under_pressure": {"cpu_percent":100.0,"ram_percent":32.6,"disk_percent":20.1},
+    "cloud_under_pressure": {"cpu_percent":7.0,"ram_percent":65.2,"disk_percent":30.3},
+    "edge_before_recovery_phase": {"cpu_percent":100.0,"ram_percent":32.6,"disk_percent":20.1},
+    "edge_recovery_observations_percent": [100.0,100.0,100.0,100.0,56.1,2.0,1.0,0.5],
+    "edge_final": {"cpu_percent":1.5,"ram_percent":33.0,"disk_percent":20.1},
+    "cloud_final": {"cpu_percent":2.5,"ram_percent":65.5,"disk_percent":30.3}
+  },
+  "results": {
+    "total_requests": 48,
+    "http_200": 43,
+    "http_503": 5,
+    "other_errors": 0,
+    "success_rate_percent": 89.58,
+    "completed_inferences": 43,
+    "detections_total": 129,
+    "fallbacks": 0,
+    "actual_target_counts": {"cloud":30,"edge":13,"not_executed":5},
+    "edge_pressure": {
+      "requests":24,
+      "http_200":21,
+      "http_503":3,
+      "success_rate_percent":87.5,
+      "throughput_attempted_requests_per_sec":0.832,
+      "client_rtt_p50_ms":1629.39,
+      "client_rtt_p95_ms":1784.33,
+      "client_rtt_mean_ms":1653.23,
+      "target_counts":{"cloud":20,"edge":1,"not_executed":3},
+      "priority":{"low":{"success":7,"mean_total_latency_ms":1615.48,"p95_total_latency_ms":1718.31},"medium":{"success":6,"mean_total_latency_ms":1642.32,"p95_total_latency_ms":1787.71},"high":{"success":8,"mean_total_latency_ms":1616.67,"p95_total_latency_ms":1740.91}}
+    },
+    "recovery": {
+      "requests":24,
+      "http_200":22,
+      "http_503":2,
+      "success_rate_percent":91.67,
+      "throughput_attempted_requests_per_sec":0.836,
+      "client_rtt_p50_ms":1628.88,
+      "client_rtt_p95_ms":1841.55,
+      "client_rtt_mean_ms":1629.27,
+      "target_counts":{"cloud":10,"edge":12,"not_executed":2},
+      "priority":{"low":{"success":7,"mean_total_latency_ms":1612.57,"p95_total_latency_ms":1828.63},"medium":{"success":7,"mean_total_latency_ms":1592.65,"p95_total_latency_ms":1788.19},"high":{"success":8,"mean_total_latency_ms":1627.69,"p95_total_latency_ms":1735.61}}
+    }
+  },
+  "observations": [
+    "Edge CPU remained at 100% for all eight pressure-phase samples.",
+    "Cloud CPU remained low at the initial pressure snapshot while Cloud handled the majority of requests.",
+    "One High-priority request executed on Edge as best effort during the pressure phase.",
+    "At the start of the nominal recovery phase Edge CPU was still 100%; it reduced to 56.1% at round five and approximately 2% by round six.",
+    "The scheduler continued choosing Cloud during early recovery while Edge remained overloaded, then moved workloads back to Edge as Edge metrics recovered.",
+    "Five HTTP 503 responses had no inference result; the benchmark did not capture their response bodies, so the exact scheduler decision/reason is not asserted.",
+    "All 43 completed inference responses contained three detections."
+  ],
+  "cluster_and_tests": {
+    "orchestrator_health":"ok",
+    "deployments":{"cloud-node":"1/1","edge-node":"1/1","orchestrator":"1/1","scheduler":"1/1"},
+    "pod_restarts":0,
+    "full_test_suite":"143 passed in 14.95s"
+  },
+  "limitations": [
+    "Three concurrent requests per round; this is not a high-concurrency capacity ceiling test.",
+    "The 48-request test was performed in short rounds with a one-second inter-round pause, not a constant-rate open-loop generator.",
+    "The five HTTP 503 response bodies were not retained, so they cannot be conclusively attributed to queue decisions versus another orchestrator-level 503 condition.",
+    "The test uses a controlled CPU busy-loop to create Edge pressure.",
+    "Detection counts were captured, but no ground-truth model accuracy evaluation was performed.",
+    "Observed end-to-end latency includes scheduler metrics collection and orchestration overhead."
+  ]
+}

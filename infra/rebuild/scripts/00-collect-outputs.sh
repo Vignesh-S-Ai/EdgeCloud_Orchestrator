@@ -23,7 +23,7 @@ AWS_REGION=$(aws configure get region 2>/dev/null || echo "ap-south-1")
 AWS_PROFILE=$(aws configure get profile 2>/dev/null || echo "edgecloud")
 
 # --- Terraform Outputs ---
-TF_DIR="${REBUILD_DIR}/../../terraform"
+TF_DIR="${REBUILD_DIR}/../../terraform-new"
 if [ -d "$TF_DIR" ]; then
   cd "$TF_DIR"
   CLOUD_PUBLIC_IP=$(terraform output -raw ec2_public_ip 2>/dev/null || echo "<RUN_TERRAFORM_OUTPUT>")
@@ -42,8 +42,18 @@ fi
 # --- Derived values ---
 ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
+# --- Private IPs (auto-derived; fall back to <MANUAL> if instance IDs unknown) ---
+CLOUD_PRIVATE_IP=$(aws ec2 describe-instances --instance-ids "${CLOUD_INSTANCE_ID}" \
+  --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text \
+  --region "${AWS_REGION}" --profile "${AWS_PROFILE}" 2>/dev/null || echo "<MANUAL>")
+EDGE_PRIVATE_IP=$(aws ec2 describe-instances --instance-ids "${EDGE_INSTANCE_ID}" \
+  --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text \
+  --region "${AWS_REGION}" --profile "${AWS_PROFILE}" 2>/dev/null || echo "<MANUAL>")
+
 # --- Node names ---
-CLOUD_NODE_NAME="<RUN: aws ec2 describe-instances --instance-ids ${CLOUD_INSTANCE_ID} --query 'Reservations[].Instances[].PrivateDnsName' --output text>"
+CLOUD_NODE_NAME=$(aws ec2 describe-instances --instance-ids "${CLOUD_INSTANCE_ID}" \
+  --query 'Reservations[0].Instances[0].PrivateDnsName' --output text \
+  --region "${AWS_REGION}" --profile "${AWS_PROFILE}" 2>/dev/null || echo "<MANUAL>")
 
 echo ""
 echo "=== Generated rebuild.env ==="
@@ -54,10 +64,10 @@ AWS_PROFILE=${AWS_PROFILE}
 PROJECT_NAME=edgecloud
 AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}
 CLOUD_PUBLIC_IP=${CLOUD_PUBLIC_IP}
-CLOUD_PRIVATE_IP=<MANUAL>
+CLOUD_PRIVATE_IP=${CLOUD_PRIVATE_IP}
 CLOUD_INSTANCE_ID=${CLOUD_INSTANCE_ID}
 EDGE_PUBLIC_IP=${EDGE_PUBLIC_IP}
-EDGE_PRIVATE_IP=<MANUAL>
+EDGE_PRIVATE_IP=${EDGE_PRIVATE_IP}
 EDGE_INSTANCE_ID=${EDGE_INSTANCE_ID}
 ECR_REGISTRY=${ECR_REGISTRY}
 KUBEEDGE_VERSION=v1.23.1

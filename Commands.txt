@@ -1,0 +1,15 @@
+1. HEALTH
+curl http://13.206.229.162:30083/health
+
+2. EDGE
+curl.exe -s --max-time 20 -X POST "http://13.206.229.162:30083/orchestrate" -H "Content-Type: application/json" --data-binary "@edge.json" | python -m json.tool
+
+curl.exe -s --max-time 20 -X POST "http://13.206.229.162:30083/orchestrate" -H "Content-Type: application/json" --data-binary "@edge.json" | python -c "import sys,json; d=json.load(sys.stdin); r=d.get('inference_result') or {}; det=(r.get('detections') or [{}])[0]; print('\n========== EDGE-CLOUD LIVE DEMO ==========\n'); print('Workload ID        :',d.get('workload_id')); print('Selected Target    :',str(d.get('selected_target')).upper()); print('Actual Target      :',str(d.get('actual_target')).upper()); print('Decision Score     :',d.get('decision_score')); print('\nYOLOv8n Detection\n------------------------------------------'); print('Detected Object    :',det.get('class_name','None')); print('Confidence         :',f\"{det.get('confidence',0)*100:.2f}%\"); print('Detection Count    :',r.get('count')); print('\nPerformance\n------------------------------------------'); print('Scheduler Latency  :',d.get('scheduler_latency_ms'),'ms'); print('Inference Latency  :',d.get('inference_latency_ms'),'ms'); print('Total Latency      :',d.get('total_latency_ms'),'ms'); print('\nFallback Used      :',d.get('fallback_used')); print('==========================================\n')"
+
+3. CLOUD
+curl.exe -s --max-time 20 -X POST "http://13.206.229.162:30083/orchestrate" -H "Content-Type: application/json" --data-binary "@cloud.json" | python -m json.tool
+
+curl.exe -s --max-time 20 -X POST "http://13.206.229.162:30083/orchestrate" -H "Content-Type: application/json" --data-binary "@cloud.json" | python -c "import sys,json; d=json.load(sys.stdin); r=d.get('inference_result') or {}; det=(r.get('detections') or [{}])[0]; print('\n========== EDGE-CLOUD LIVE DEMO ==========\n'); print('Workload ID        :',d.get('workload_id')); print('Selected Target    :',str(d.get('selected_target')).upper()); print('Actual Target      :',str(d.get('actual_target')).upper()); print('Decision Score     :',d.get('decision_score')); print('\nYOLOv8n Detection\n------------------------------------------'); print('Detected Object    :',det.get('class_name','None')); print('Confidence         :',f\"{det.get('confidence',0)*100:.2f}%\"); print('Detection Count    :',r.get('count')); print('\nPerformance\n------------------------------------------'); print('Scheduler Latency  :',d.get('scheduler_latency_ms'),'ms'); print('Inference Latency  :',d.get('inference_latency_ms'),'ms'); print('Total Latency      :',d.get('total_latency_ms'),'ms'); print('\nFallback Used      :',d.get('fallback_used')); print('==========================================\n')"
+
+4. TESTS 
+python -m pytest edge/tests/ -v

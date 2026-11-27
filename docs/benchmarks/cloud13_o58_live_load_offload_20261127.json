@@ -1,0 +1,12 @@
+{
+  "milestone": "O5.8",
+  "title": "Live Load and Adaptive Offloading Validation",
+  "date": "2026-11-27",
+  "environment": {"region":"ap-south-1","edge_instance":"i-0b0ded3482cd7c747","cloud_instance":"i-0086f3895dc6e18ae","namespace":"edgecloud","scheduler_image":"171743139339.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/scheduler:o56-hysteresis-20261127"},
+  "load_method": {"target":"Edge EC2 node","workers":2,"duration_seconds":55,"method":"bounded CPU busy-loop workers launched through AWS Systems Manager; no deployment or pod scaling changes"},
+  "live_overload_samples": {"count":8,"edge_cpu_percent":100.0,"edge_ram_percent":32.3,"edge_disk_percent":20.1,"cloud_cpu_percent_observed_range":[2.1,15.5],"cloud_ram_percent_observed_range":[63.9,64.3],"network_latency_ms_observed_range":[25.1,103.7],"decisions":{"cloud":8,"edge":0,"other":0},"http_errors":0},
+  "end_to_end_inference": {"http":200,"workload_id":"o58-e2e-overload-inference","priority":"low","selected_target":"cloud","actual_target":"cloud","fallback_used":false,"scheduler_latency_ms":1113.22,"inference_latency_ms":140.72,"total_latency_ms":1253.97,"model":"yolov8n.pt","image_dimensions":[320,240],"detections":0,"note":"Generated test image; inference completed successfully with zero detections."},
+  "recovery": {"same_workload_id":"o58-live-load-low","during_cooldown_samples":[{"edge_cpu_percent":100.0,"target":"cloud"},{"edge_cpu_percent":100.0,"target":"cloud"},{"edge_cpu_percent":100.0,"target":"cloud"}],"transition_sample":{"edge_cpu_percent":55.1,"target":"edge"},"post_load_sample":{"edge_cpu_percent":2.0,"edge_ram_percent":32.1,"edge_disk_percent":20.1,"target":"edge"}},
+  "cluster_health_after_test": {"deployments_ready":{"cloud-node":"1/1","edge-node":"1/1","orchestrator":"1/1","scheduler":"1/1"},"pod_restarts":0},
+  "limitations": ["CPU pressure was generated with a bounded synthetic busy-loop, not a representative production user workload.","Only Low-priority workload was used for the live offload and recovery path.","The inference payload was a generated test image and returned zero detections; this validates routing and inference completion, not detection accuracy.","No sustained multi-hour stability or capacity ceiling claim is made."]
+}

@@ -1,0 +1,43 @@
+{
+    "date_utc":  "2026-11-26T18:01:45Z",
+    "service_account":  "system:serviceaccount:kubeedge:cloudcore",
+    "finding":  "CloudCore lacked read permissions for DeviceStatus CRD introduced in KubeEdge 1.23",
+    "before":  {
+                   "get":  "no",
+                   "list":  "no",
+                   "watch":  "no",
+                   "cloudcore_logs":  "forbidden list/watch devicestatuses.devices.kubeedge.io"
+               },
+    "fix":  {
+                "clusterrole":  "cloudcore-devicestatus-reader",
+                "clusterrolebinding":  "cloudcore-devicestatus-reader",
+                "api_group":  "devices.kubeedge.io",
+                "resource":  "devicestatuses",
+                "verbs":  [
+                              "get",
+                              "list",
+                              "watch"
+                          ],
+                "restart_cloudcore":  false
+            },
+    "after":  {
+                  "get":  "yes",
+                  "list":  "yes",
+                  "watch":  "yes",
+                  "device_status_objects":  "none currently present",
+                  "new_forbidden_logs":  "none observed in 30-second post-fix window",
+                  "edge_health_http":  200
+              },
+    "remaining_rule_warnings":  {
+                                    "messages":  [
+                                                     "unknown field failMessages",
+                                                     "unknown field successMessages"
+                                                 ],
+                                    "rule_status_schema_has_fields":  true,
+                                    "ruleendpoint_status_schema_present":  false,
+                                    "rule_status_subresource_present":  false,
+                                    "cloudcore_log":  "UpdateRulestatus successfully",
+                                    "route_forwarding":  "working",
+                                    "action":  "No CRD schema change made; retain as non-blocking warning pending exact source confirmation"
+                                }
+}

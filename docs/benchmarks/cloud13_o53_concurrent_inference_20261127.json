@@ -1,0 +1,44 @@
+﻿{
+  "experiment": "O5.3 live end-to-end concurrent inference",
+  "date_utc": "2026-11-26T18:56:37.040749Z",
+  "image": "Sampleimage.jpg",
+  "image_bytes": 37610,
+  "image_sha256": "cacdb9bc5e08c713231c1e45d3c620d40ef2145f1a8c3daef3dc0338584881a1",
+  "confidence": 0.25,
+  "annotated": false,
+  "warmups": {
+    "edge": {"requests":2,"http_200":2,"client_rtt_mean_ms":157.1,"scheduler_mean_ms":38.48,"inference_mean_ms":116.33,"pipeline_mean_ms":154.82,"detections":[3]},
+    "cloud": {"requests":2,"http_200":2,"client_rtt_mean_ms":192.12,"scheduler_mean_ms":52.02,"inference_mean_ms":138.03,"pipeline_mean_ms":190.07,"detections":[3]}
+  },
+  "pre_metrics": {
+    "edge": {"cpu_percent":1.5,"ram_percent":31.9,"ram_used_gb":0.74,"ram_total_gb":3.75,"disk_percent":20.1},
+    "cloud": {"cpu_percent":3.5,"ram_percent":63.0,"ram_used_gb":1.97,"ram_total_gb":3.75,"disk_percent":30.3}
+  },
+  "results": {
+    "edge_c1": {"concurrency":1,"requests":10,"http_200":10,"failures":0,"client_rtt_mean_ms":186.8,"client_rtt_median_ms":192.06,"client_rtt_p95_ms":199.5,"client_rtt_max_ms":204.39,"scheduler_mean_ms":25.27,"inference_mean_ms":159.25,"pipeline_mean_ms":184.54,"actual_edge":10,"fallbacks":0,"detections":[3]},
+    "edge_c2": {"concurrency":2,"requests":10,"http_200":10,"failures":0,"client_rtt_mean_ms":319.61,"client_rtt_median_ms":306.02,"client_rtt_p95_ms":398.29,"client_rtt_max_ms":403.02,"scheduler_mean_ms":105.94,"inference_mean_ms":208.61,"pipeline_mean_ms":314.57,"actual_edge":10,"fallbacks":0,"detections":[3]},
+    "edge_c4": {"concurrency":4,"requests":10,"http_200":10,"failures":0,"client_rtt_mean_ms":558.91,"client_rtt_median_ms":563.74,"client_rtt_p95_ms":659.58,"client_rtt_max_ms":759.04,"scheduler_mean_ms":215.77,"inference_mean_ms":309.74,"pipeline_mean_ms":525.53,"actual_edge":10,"fallbacks":0,"detections":[3]},
+    "cloud_c1": {"concurrency":1,"requests":10,"http_200":10,"failures":0,"client_rtt_mean_ms":227.96,"client_rtt_median_ms":203.3,"client_rtt_p95_ms":263.25,"client_rtt_max_ms":407.39,"scheduler_mean_ms":23.57,"inference_mean_ms":201.44,"pipeline_mean_ms":225.03,"actual_cloud":10,"fallbacks":0,"detections":[3]},
+    "cloud_c2": {"concurrency":2,"requests":10,"http_200":10,"failures":0,"client_rtt_mean_ms":374.47,"client_rtt_median_ms":363.23,"client_rtt_p95_ms":431.15,"client_rtt_max_ms":449.6,"scheduler_mean_ms":105.2,"inference_mean_ms":236.98,"pipeline_mean_ms":342.2,"actual_cloud":10,"fallbacks":0,"detections":[3]},
+    "cloud_c4": {"concurrency":4,"requests":10,"http_200":10,"failures":0,"client_rtt_mean_ms":692.24,"client_rtt_median_ms":614.61,"client_rtt_p95_ms":898.98,"client_rtt_max_ms":914.48,"scheduler_mean_ms":221.77,"inference_mean_ms":401.03,"pipeline_mean_ms":622.83,"actual_cloud":10,"fallbacks":0,"detections":[3]}
+  },
+  "post_metrics": {
+    "edge": {"cpu_percent":0.5,"ram_percent":32.4,"ram_used_gb":0.77,"ram_total_gb":3.75,"disk_percent":20.1},
+    "cloud": {"cpu_percent":4.0,"ram_percent":64.5,"ram_used_gb":2.03,"ram_total_gb":3.75,"disk_percent":30.3}
+  },
+  "totals": {"warmups":4,"measured_requests":60,"http_200":60,"http_failures":0,"edge_requests":30,"cloud_requests":30,"fallbacks":0,"all_responses_three_detections":true},
+  "method": [
+    "Live POST /orchestrate requests with real model inference on Edge and Cloud.",
+    "Explicit synthetic metrics snapshots forced placement deterministically; this benchmark is not a test of adaptive selection from live metrics.",
+    "Two warmups per target, then 10 measured requests per target at concurrency 1, 2, and 4; three-second cooldown between batches.",
+    "Concurrency 8 was intentionally omitted to protect the single-replica Edge inference node.",
+    "Client RTT is measured around the full HTTP request; scheduler, inference and pipeline latency are reported by the orchestrator."
+  ],
+  "post_validation": {
+    "deployments_ready": {"cloud-node":"1/1","edge-node":"1/1","orchestrator":"1/1","scheduler":"1/1"},
+    "orchestrator_health": "HTTP 200 ok",
+    "edge_health": "HTTP 200 degraded; model_loaded=true; camera_open=false",
+    "pods_restarted": false,
+    "configuration_changed": false
+  }
+}

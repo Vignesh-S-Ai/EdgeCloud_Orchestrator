@@ -1,0 +1,39 @@
+{
+    "experiment":  "Scheduler-only live decision benchmark from orchestrator pod",
+    "requests":  100,
+    "success":  100,
+    "warmups_success":  5,
+    "all_targets_edge":  100,
+    "overall":  {
+                    "mean_ms":  1484.04,
+                    "median_ms":  1311.98,
+                    "p95_ms":  2476.61,
+                    "max_ms":  2489.26
+                },
+    "per_concurrency":  [
+                            {
+                                "c":  1,
+                                "mean_ms":  1111.89,
+                                "median_ms":  1101.59,
+                                "p95_ms":  1185.24
+                            },
+                            {
+                                "c":  2,
+                                "mean_ms":  1303.29,
+                                "median_ms":  1300.74,
+                                "p95_ms":  1393.74
+                            },
+                            {
+                                "c":  4,
+                                "mean_ms":  1476.33,
+                                "median_ms":  1431.94,
+                                "p95_ms":  1767.88
+                            },
+                            {
+                                "c":  8,
+                                "mean_ms":  2044.66,
+                                "median_ms":  2010.01,
+                                "p95_ms":  2489.01
+                            }
+                        ]
+}

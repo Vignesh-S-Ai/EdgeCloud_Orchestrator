@@ -15,11 +15,13 @@ spec:
       labels:
         app: cloud-node
     spec:
+      nodeSelector:
+        node-role: cloud
       imagePullSecrets:
         - name: ecr-registry-secret
       containers:
         - name: cloud-node
-          image: 325580898273.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/cloud-node:latest
+          image: 171743139339.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/cloud-node:latest
           ports:
             - containerPort: 8001
           env:

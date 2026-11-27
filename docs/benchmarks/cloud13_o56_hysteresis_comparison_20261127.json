@@ -1,0 +1,172 @@
+{
+  "milestone": "O5.6",
+  "test": "same-sequence deterministic jitter comparison",
+  "generated_at_utc": "2026-11-27T01:12:51.515199+00:00",
+  "configuration": {
+    "hysteresis_margin_percent": 5.0,
+    "placement_state_ttl_sec": 300.0,
+    "edge_cpu_threshold_percent": 70.0,
+    "priority_bias": {
+      "low": 0.0,
+      "medium": 5.0,
+      "high": 15.0
+    }
+  },
+  "sequences": {
+    "low": {
+      "cpu_sequence": [
+        69.9,
+        70.1,
+        69.9,
+        70.1,
+        70.0,
+        70.1
+      ],
+      "targets": [
+        "edge",
+        "cloud",
+        "cloud",
+        "cloud",
+        "cloud",
+        "cloud"
+      ],
+      "placement_switches": 1
+    },
+    "medium": {
+      "cpu_sequence": [
+        74.9,
+        75.1,
+        74.9,
+        75.1,
+        75.0,
+        75.1
+      ],
+      "targets": [
+        "edge",
+        "cloud",
+        "cloud",
+        "cloud",
+        "cloud",
+        "cloud"
+      ],
+      "placement_switches": 1
+    },
+    "high": {
+      "cpu_sequence": [
+        84.9,
+        85.1,
+        84.9,
+        85.1,
+        85.0,
+        85.1
+      ],
+      "targets": [
+        "edge",
+        "cloud",
+        "cloud",
+        "cloud",
+        "cloud",
+        "cloud"
+      ],
+      "placement_switches": 1
+    }
+  },
+  "comparison": {
+    "o55_baseline_switches": 15,
+    "o56_switches": 3,
+    "switch_reduction_percent": 80.0,
+    "o55_source": "O5.5 captured result: 5 switches per priority, 15 total",
+    "o56_method": "Live deployed Kubernetes scheduler API replay with synthetic metrics; local unit-test replay also passed"
+  },
+  "scope": [
+    "Synthetic metrics submitted to the live Kubernetes scheduler API",
+    "No inference workload or autonomous telemetry was part of the jitter test",
+    "Rule-based policy; no ML placement policy"
+  ],
+  "deployment": {
+    "status": "deployed_and_live_validated",
+    "image": "171743139339.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/scheduler:o56-hysteresis-20261127",
+    "digest": "sha256:51a853dc8f4cc76dabdfae6958fb3825f0889a1e3b854a0006e618de3582cca5",
+    "base_image_digest": "sha256:bc86124de82f2cb9170890a8cca8e1ed89e086b547454fb61e797b97aa56322d",
+    "namespace": "edgecloud",
+    "replicas": "1/1 Ready",
+    "configuration": {
+      "SCHEDULER_HYSTERESIS_MARGIN_PERCENT": "5",
+      "SCHEDULER_PLACEMENT_STATE_TTL_SEC": "300",
+      "SCHEDULER_PLACEMENT_STATE_MAX_ENTRIES": "10000"
+    }
+  },
+  "live_cluster_validation": {
+    "method": "POST /decision executed inside deployed scheduler pod",
+    "requests": 18,
+    "http_success": "18/18",
+    "result": "PASS",
+    "priority_sequences": {
+      "low": {
+        "cpu_sequence": [
+          69.9,
+          70.1,
+          69.9,
+          70.1,
+          70.0,
+          70.1
+        ],
+        "targets": [
+          "edge",
+          "cloud",
+          "cloud",
+          "cloud",
+          "cloud",
+          "cloud"
+        ],
+        "placement_switches": 1
+      },
+      "medium": {
+        "cpu_sequence": [
+          74.9,
+          75.1,
+          74.9,
+          75.1,
+          75.0,
+          75.1
+        ],
+        "targets": [
+          "edge",
+          "cloud",
+          "cloud",
+          "cloud",
+          "cloud",
+          "cloud"
+        ],
+        "placement_switches": 1
+      },
+      "high": {
+        "cpu_sequence": [
+          84.9,
+          85.1,
+          84.9,
+          85.1,
+          85.0,
+          85.1
+        ],
+        "targets": [
+          "edge",
+          "cloud",
+          "cloud",
+          "cloud",
+          "cloud",
+          "cloud"
+        ],
+        "placement_switches": 1
+      }
+    },
+    "deployments_ready": {
+      "cloud-node": "1/1",
+      "edge-node": "1/1",
+      "orchestrator": "1/1",
+      "scheduler": "1/1"
+    },
+    "pod_restarts": 0,
+    "orchestrator_health": "HTTP 200 status ok"
+  }
+}

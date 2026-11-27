@@ -1,0 +1,99 @@
+{
+    "experiment":  "Full orchestrator live-metrics benchmark after SCHEDULER_METRICS_TTL_SEC=2",
+    "date_utc":  "2026-11-26T17:51:24Z",
+    "requests":  100,
+    "success":  100,
+    "failed":  0,
+    "success_rate_pct":  100,
+    "selected_targets":  {
+                             "error":  0,
+                             "queue":  0,
+                             "edge":  100,
+                             "cloud":  0
+                         },
+    "fallback_count":  0,
+    "detection_classes":  [
+                              "book",
+                              "clock",
+                              "cup"
+                          ],
+    "overall":  {
+                    "roundtrip_mean_ms":  834.94,
+                    "roundtrip_median_ms":  499.74,
+                    "roundtrip_p95_ms":  2087.27,
+                    "scheduler_mean_ms":  487.85,
+                    "scheduler_median_ms":  204.13,
+                    "scheduler_p95_ms":  1522.36,
+                    "inference_mean_ms":  324.01,
+                    "inference_median_ms":  214.21,
+                    "inference_p95_ms":  786.77,
+                    "total_mean_ms":  811.88,
+                    "total_median_ms":  497.18,
+                    "total_p95_ms":  2001.96
+                },
+    "per_concurrency":  [
+                            {
+                                "c":  1,
+                                "scheduler_mean_ms":  124.63,
+                                "scheduler_median_ms":  29.91,
+                                "scheduler_p95_ms":  1115.85,
+                                "inference_mean_ms":  143.35,
+                                "total_mean_ms":  268.01,
+                                "total_median_ms":  193.28
+                            },
+                            {
+                                "c":  2,
+                                "scheduler_mean_ms":  317.51,
+                                "scheduler_median_ms":  191.84,
+                                "scheduler_p95_ms":  1310.28,
+                                "inference_mean_ms":  170.27,
+                                "total_mean_ms":  487.8,
+                                "total_median_ms":  308.58
+                            },
+                            {
+                                "c":  4,
+                                "scheduler_mean_ms":  657.5,
+                                "scheduler_median_ms":  409.99,
+                                "scheduler_p95_ms":  1622.53,
+                                "inference_mean_ms":  369.7,
+                                "total_mean_ms":  1027.22,
+                                "total_median_ms":  814.57
+                            },
+                            {
+                                "c":  8,
+                                "scheduler_mean_ms":  851.74,
+                                "scheduler_median_ms":  804.54,
+                                "scheduler_p95_ms":  1552,
+                                "inference_mean_ms":  612.73,
+                                "total_mean_ms":  1464.51,
+                                "total_median_ms":  1505.55
+                            }
+                        ],
+    "comparison":  {
+                       "scheduler_mean_reduction_pct":  67.6,
+                       "total_mean_reduction_pct":  53.8,
+                       "total_median_reduction_pct":  61.6,
+                       "total_p95_reduction_pct":  39.1
+                   },
+    "warmup_roundtrip_ms":  [
+                                1180.677,
+                                168.171,
+                                203.159,
+                                185.237,
+                                200.565
+                            ],
+    "deployment":  {
+                       "scheduler_metrics_ttl_sec":  2,
+                       "scheduler_ready_replicas":  1,
+                       "scheduler_desired_replicas":  1,
+                       "orchestrator_health":  "ok",
+                       "cloud_health":  "ok",
+                       "edge_health":  "degraded: camera_open=false, model_loaded=true"
+                   },
+    "notes":  [
+                  "Same image and workload configuration as pre-TTL full orchestrator benchmark",
+                  "All measured requests returned HTTP 200 and selected Edge",
+                  "Scheduler p95 still includes cache-refresh spikes; C4/C8 also show inference contention",
+                  "Inference mean increased in this run; the measured improvement is in scheduler and total latency, not model inference speed"
+              ]
+}

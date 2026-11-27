@@ -1,0 +1,13 @@
+{
+  "milestone":"O5.9",
+  "title":"Concurrent Multi-Priority Adaptive Scheduling Validation",
+  "date":"2026-11-27",
+  "environment":{"region":"ap-south-1","namespace":"edgecloud","scheduler_image":"171743139339.dkr.ecr.ap-south-1.amazonaws.com/edgecloud/scheduler:o56-hysteresis-20261127","scheduler_replicas":1},
+  "method":{"edge_load":"Two bounded CPU busy-loop workers on Edge EC2, approximately 50 seconds","edge_cloud_resource_metrics":"Fetched from live Edge and Cloud /metrics endpoints while Edge was under pressure","network_latency":"Controlled request input, 80 ms usable and 250 ms constrained; not an injected physical network impairment","concurrency":"6 simultaneous scheduler API requests per batch","rounds":3,"total_requests":18,"workload_ids":"Stable independent workload ID per priority"},
+  "live_resource_snapshot":{"edge":{"cpu_percent":100.0,"ram_percent":32.1,"disk_percent":20.1},"cloud":{"cpu_percent":3.5,"ram_percent":64.5,"disk_percent":30.3}},
+  "results":{"http_success":18,"http_errors":0,"counts":{"low_80ms_cloud":3,"medium_80ms_cloud":3,"high_80ms_cloud":3,"low_250ms_queue":3,"medium_250ms_queue":3,"high_250ms_edge_best_effort":3},"expected_decisions":18,"unexpected_decisions":0},
+  "policy_behavior":{"usable_network_and_edge_overloaded":"All priorities offloaded to healthy Cloud","constrained_network_and_edge_overloaded":"Low and Medium queued; High retained on Edge best-effort"},
+  "recovery":{"edge_cpu_percent":0.5,"edge_ram_percent":32.2,"network_latency_ms":80.0,"targets":{"low":"edge","medium":"edge","high":"edge"}},
+  "cluster_health":{"deployments_ready":{"cloud-node":"1/1","edge-node":"1/1","orchestrator":"1/1","scheduler":"1/1"},"pod_restarts":0},
+  "limitations":["Only scheduler decisions were exercised concurrently; this milestone does not claim 18 simultaneous inference executions.","Network latency values of 80 ms and 250 ms were controlled scheduler inputs. Edge and Cloud resource metrics were live.","High priority is best-effort pinned to Edge when Edge is overloaded and Cloud offload is not viable; this does not guarantee a latency SLO.","Single scheduler replica; state is in-memory and process-local."]
+}

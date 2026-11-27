@@ -1,0 +1,65 @@
+{
+    "experiment":  "Matched Cloud vs Edge inference benchmark",
+    "date_utc":  "2026-11-26T17:33:26Z",
+    "image":  "Sampleimage.jpg",
+    "image_bytes":  37610,
+    "image_sha256":  "cacdb9bc5e08c713231c1e45d3c620d40ef2145f1a8c3daef3dc0338584881a1",
+    "warmups_per_target":  5,
+    "requests_per_target":  100,
+    "concurrency_levels":  [
+                               1,
+                               2,
+                               4,
+                               8
+                           ],
+    "confidence":  0.25,
+    "all_measured_http_200":  200,
+    "cloud":  {
+                  "mean_rtt_ms":  353.72,
+                  "median_rtt_ms":  282.38,
+                  "p95_rtt_ms":  812.04,
+                  "max_rtt_ms":  834.12,
+                  "mean_inference_ms":  339.66,
+                  "median_inference_ms":  262.36
+              },
+    "edge":  {
+                 "mean_rtt_ms":  304.91,
+                 "median_rtt_ms":  186.45,
+                 "p95_rtt_ms":  722.53,
+                 "max_rtt_ms":  769.62,
+                 "mean_inference_ms":  281.91,
+                 "median_inference_ms":  164.32
+             },
+    "per_concurrency":  [
+                            {
+                                "c":  1,
+                                "cloud_mean_rtt_ms":  121.23,
+                                "edge_mean_rtt_ms":  97.27
+                            },
+                            {
+                                "c":  2,
+                                "cloud_mean_rtt_ms":  217.87,
+                                "edge_mean_rtt_ms":  171.56
+                            },
+                            {
+                                "c":  4,
+                                "cloud_mean_rtt_ms":  382.06,
+                                "edge_mean_rtt_ms":  327.24
+                            },
+                            {
+                                "c":  8,
+                                "cloud_mean_rtt_ms":  693.72,
+                                "edge_mean_rtt_ms":  623.57
+                            }
+                        ],
+    "detections":  [
+                       "book",
+                       "clock",
+                       "cup"
+                   ],
+    "notes":  [
+                  "Cloud direct localhost /infer; Edge through CloudCore REST Router /detect",
+                  "Single image, single run; not a general accuracy claim",
+                  "Edge health body remains degraded because camera_open=false"
+              ]
+}

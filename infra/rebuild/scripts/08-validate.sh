@@ -14,6 +14,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$(dirname "$SCRIPT_DIR")/rebuild.env"
 
+# Normalize placeholder private IP if rebuild.env was not fully filled in
+if [ -z "${CLOUD_PRIVATE_IP:-}" ] || [[ "${CLOUD_PRIVATE_IP}" == \<* ]]; then
+  CLOUD_PRIVATE_IP=$(aws ec2 describe-instances --instance-ids "${CLOUD_INSTANCE_ID}" \
+    --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text \
+    --region "${AWS_REGION}" --profile "${AWS_PROFILE}")
+fi
+
 PASS=0
 FAIL=0
 TOTAL=0
@@ -36,7 +43,7 @@ echo ""
 
 # --- Level 0: AWS Infrastructure ---
 echo "--- Level 0: AWS Infrastructure ---"
-if aws ec2 describe-instances --filters Name=tag:Project,Values=edgecloud --query 'Reservations[].Instances[].State.Name' --output text 2>/dev/null | grep -q "running"; then
+if aws ec2 describe-instances --filters Name=tag:Project,Values=edgecloud --query 'Reservations[].Instances[].State.Name' --output text --region "${AWS_REGION}" --profile "${AWS_PROFILE}" 2>/dev/null | grep -q "running"; then
   check "EC2 instances running" "PASS"
 else
   check "EC2 instances running" "No running instances found"

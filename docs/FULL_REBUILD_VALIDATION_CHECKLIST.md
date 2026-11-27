@@ -17,7 +17,7 @@ After rebuilding from zero, execute every gate. System is not production-ready u
 
 | Gate | Check | Command | Expected |
 |------|-------|---------|----------|
-| 1A | Cloud node Ready | `kubectl get nodes` | ip-10-0-1-113 Ready |
+| 1A | Cloud node Ready | `kubectl get nodes` | cloud node Ready (name = `CLOUD_NODE_NAME` in rebuild.env; hostname style `ip-<private-ip-dashed>.<region>.compute.internal`) |
 | 1B | Edge node Ready | `kubectl get nodes` | edge-ec2-node Ready |
 | 1C | WSL2 absent/cordoned | `kubectl get nodes` | wsl2-edge-node NotReady,SchedulingDisabled (or absent) |
 | 1D | Namespace exists | `kubectl get ns edgecloud` | edgecloud Active |
@@ -37,9 +37,9 @@ After rebuilding from zero, execute every gate. System is not production-ready u
 | Gate | Check | Command | Expected |
 |------|-------|---------|----------|
 | 3A | All 4 pods Running | `kubectl get pods -n edgecloud -o wide` | 4 Running, RESTARTS=0 |
-| 3B | Orchestrator on cloud CP | `kubectl get pods -n edgecloud -o wide` | orchestrator on ip-10-0-1-113 |
-| 3C | Scheduler on cloud CP | `kubectl get pods -n edgecloud -o wide` | scheduler on ip-10-0-1-113 |
-| 3D | Cloud-node on cloud CP | `kubectl get pods -n edgecloud -o wide` | cloud-node on ip-10-0-1-113 |
+| 3B | Orchestrator on cloud CP | `kubectl get pods -n edgecloud -o wide` | orchestrator on cloud node (label `node-role=cloud`) |
+| 3C | Scheduler on cloud CP | `kubectl get pods -n edgecloud -o wide` | scheduler on cloud node (label `node-role=cloud`) |
+| 3D | Cloud-node on cloud CP | `kubectl get pods -n edgecloud -o wide` | cloud-node on cloud node (label `node-role=cloud`) |
 | 3E | Edge-node on edge EC2 | `kubectl get pods -n edgecloud -o wide` | edge-node on edge-ec2-node |
 
 ## Level 4: Service Health
@@ -81,7 +81,9 @@ After rebuilding from zero, execute every gate. System is not production-ready u
 | Gate | Check | Command | Expected |
 |------|-------|---------|----------|
 | 8A | Edge direct port 8000 blocked | `curl http://<EDGE_PUBLIC_IP>:8000/health` | Connection refused/timeout |
-| 8B | Orchestrator publicly accessible | `curl http://<CLOUD_PUBLIC_IP>:30083/health` | status: ok |
+| 8B | Orchestrator NOT publicly reachable (secure access design) | `curl --max-time 5 http://<CLOUD_PUBLIC_IP>:30083/health` | Connection refused/timeout (SG has no 30083 rule) |
+| 8C | Orchestrator reachable via SSM tunnel | SSM port-forward 30083 per `docs/SSM_DASHBOARD_ACCESS.md`, then `curl http://127.0.0.1:30083/health` | status: ok |
+| 8D | Public ports 80/443 closed | `curl --max-time 5 http://<CLOUD_PUBLIC_IP>:80/health` | Connection refused/timeout |
 
 ## Level 9: Metrics and Optimization
 

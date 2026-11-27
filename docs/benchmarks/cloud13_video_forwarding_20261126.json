@@ -1,0 +1,49 @@
+{
+    "experiment":  "KubeEdge REST Router batch-video forwarding",
+    "date_utc":  "2026-11-26T17:54:30Z",
+    "route":  "http://127.0.0.1:9443/edge-ec2-node/edgecloud/detect/video",
+    "rule":  "video-route",
+    "rule_source":  "/detect/video",
+    "rule_target":  "/detect/video",
+    "fixture":  {
+                    "filename":  "cloud13_test.avi",
+                    "format":  "AVI / Motion JPEG",
+                    "width":  625,
+                    "height":  400,
+                    "fps":  10,
+                    "frames":  30,
+                    "bytes":  1576382,
+                    "source":  "Sampleimage.jpg repeated into a static 30-frame test clip"
+                },
+    "frame_step_1":  {
+                         "http_status":  200,
+                         "client_rtt_seconds":  2.499987,
+                         "server_elapsed_ms":  2423,
+                         "total_frames":  30,
+                         "frames_processed":  30,
+                         "effective_fps":  12.38,
+                         "detections":  {
+                                            "cup":  30,
+                                            "book":  30,
+                                            "clock":  29
+                                        }
+                     },
+    "frame_step_5":  {
+                         "http_status":  200,
+                         "client_rtt_seconds":  0.692519,
+                         "server_elapsed_ms":  538.1,
+                         "total_frames":  30,
+                         "frames_processed":  6,
+                         "effective_fps":  11.15,
+                         "detections":  {
+                                            "cup":  6,
+                                            "book":  6,
+                                            "clock":  5
+                                        }
+                     },
+    "notes":  [
+                  "Multipart video upload forwarded through CloudCore REST Router and KubeEdge ServiceBus to Edge /detect/video",
+                  "frame_step=1 processed all 30 frames; frame_step=5 processed 6 of 30 frames",
+                  "The clip repeats one still image, so this validates file forwarding and frame sampling, not motion tracking, live camera streaming or video accuracy"
+              ]
+}

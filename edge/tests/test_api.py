@@ -81,7 +81,9 @@ def test_health(client):
     assert resp.status_code == 200
     body = resp.json()
     assert body["model_loaded"] is True
-    assert body["status"] in {"ok", "degraded"}
+    assert body["camera_open"] is False
+    assert body["camera_status"] == "not_connected"
+    assert body["status"] == "ok"
 
 
 def test_metrics(client):
@@ -178,3 +180,17 @@ def test_detect_video_frame_step_invalid(client, bad):
         files={"file": ("x.mp4", video, "video/mp4")},
     )
     assert resp.status_code == 422
+
+
+def test_health_degraded_when_model_not_loaded(client):
+    class UnloadedDetector(FakeDetector):
+        def is_loaded(self):
+            return False
+
+    client.app.state.detector = UnloadedDetector()
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["model_loaded"] is False
+    assert body["camera_status"] == "not_connected"
+    assert body["status"] == "degraded"
